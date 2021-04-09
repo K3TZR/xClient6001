@@ -1,0 +1,88 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "CocoaAsyncSocket",
+        "repositoryURL": "https://github.com/robbiehanson/CocoaAsyncSocket",
+        "state": {
+          "branch": null,
+          "revision": "dbdc00669c1ced63b27c3c5f052ee4d28f10150c",
+          "version": "7.6.5"
+        }
+      },
+      {
+        "package": "CwlCatchException",
+        "repositoryURL": "https://github.com/mattgallagher/CwlCatchException.git",
+        "state": {
+          "branch": null,
+          "revision": "f809deb30dc5c9d9b78c872e553261a61177721a",
+          "version": "2.0.0"
+        }
+      },
+      {
+        "package": "CwlPreconditionTesting",
+        "repositoryURL": "https://github.com/mattgallagher/CwlPreconditionTesting.git",
+        "state": {
+          "branch": null,
+          "revision": "02b7a39a99c4da27abe03cab2053a9034379639f",
+          "version": "2.0.0"
+        }
+      },
+      {
+        "package": "JWTDecode",
+        "repositoryURL": "https://github.com/auth0/JWTDecode.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "3985f68dec94c7d7148d9821abb65cf0c508e9f2",
+          "version": "2.6.0"
+        }
+      },
+      {
+        "package": "Nimble",
+        "repositoryURL": "https://github.com/Quick/Nimble.git",
+        "state": {
+          "branch": null,
+          "revision": "e491a6731307bb23783bf664d003be9b2fa59ab5",
+          "version": "9.0.0"
+        }
+      },
+      {
+        "package": "Quick",
+        "repositoryURL": "https://github.com/Quick/Quick.git",
+        "state": {
+          "branch": null,
+          "revision": "8cce6acd38f965f5baa3167b939f86500314022b",
+          "version": "3.1.2"
+        }
+      },
+      {
+        "package": "SwiftyUserDefaults",
+        "repositoryURL": "https://github.com/sunshinejr/SwiftyUserDefaults.git",
+        "state": {
+          "branch": null,
+          "revision": "f66bcd04088582c8fbb5cb8554d577e303bae396",
+          "version": "5.3.0"
+        }
+      },
+      {
+        "package": "XCGLogger",
+        "repositoryURL": "https://github.com/DaveWoodCom/XCGLogger.git",
+        "state": {
+          "branch": null,
+          "revision": "a9c4667b247928a29bdd41be2ec2c8d304215a54",
+          "version": "7.0.1"
+        }
+      },
+      {
+        "package": "xLib6001",
+        "repositoryURL": "https://github.com/K3TZR/xLib6001.git",
+        "state": {
+          "branch": null,
+          "revision": "a891fc613719530d4c17a866a04cdd504e12fd8f",
+          "version": "0.1.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
