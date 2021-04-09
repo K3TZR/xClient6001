@@ -1,5 +1,5 @@
 import XCTest
-@testable import xClient
+@testable import xClient6001
 
 final class xClientMacTests: XCTestCase {
     func testExample() {
