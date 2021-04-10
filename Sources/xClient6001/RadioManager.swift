@@ -98,6 +98,8 @@ public protocol RadioManagerDelegate {
     var stationName: String                 {get set}
 
     func willConnect()
+    func didConnect()
+    func didFailToConnect()
     func willDisconnect()
 }
 
@@ -563,14 +565,19 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         let stationName = (station == "" ? kStation : station)
         
         // attempt a connection
-        _api.connect(packet,
+        if _api.connect(packet,
                      station           : stationName,
                      program           : Bundle.main.infoDictionary!["CFBundleName"] as! String,
                      clientId          : isGui ? delegate.clientId : nil,
                      isGui             : isGui,
                      wanHandle         : packet.wanHandle,
                      logState: .none,
-                     pendingDisconnect : pendingDisconnect)
+                     pendingDisconnect : pendingDisconnect) {
+
+            delegate.didConnect()
+        } else {
+            delegate.didFailToConnect()
+        }
     }
 
     func loadPickerPackets() {

@@ -28,5 +28,7 @@ class MockRadioManagerDelegate: RadioManagerDelegate {
     // MARK: - Internal methods
     
     func willConnect() {}
+    func didConnect() {}
+    func didFailToConnect() {}
     func willDisconnect() {}
 }
