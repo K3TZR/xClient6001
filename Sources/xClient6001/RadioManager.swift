@@ -138,7 +138,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     // MARK: - Internal properties
     
     var auth0UrlString = ""
-    var packets: [DiscoveryPacket] { Discovery.sharedInstance.discoveryPackets }
+    var radios: [Radio] { Discovery.sharedInstance.radios }
 
     // ----------------------------------------------------------------------------
     // MARK: - Private properties
@@ -410,16 +410,17 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
             
             let packetIndex = delegate.guiIsEnabled ? index : pickerPackets[index].packetIndex
             
-            if packets.count - 1 >= packetIndex {
-                let packet = packets[packetIndex]
-                
-                // if Non-Gui, schedule automatic binding
-                _autoBind = delegate.guiIsEnabled ? nil : index
-                
-                if packet.isWan {
-                    _wanServer?.sendConnectMessage(for: packet.serialNumber, holePunchPort: packet.negotiatedHolePunchPort)
-                } else {
-                    openRadio(packet)
+            if radios.count - 1 >= packetIndex {
+                if let packet = radios[packetIndex].packet {
+
+                    // if Non-Gui, schedule automatic binding
+                    _autoBind = delegate.guiIsEnabled ? nil : index
+
+                    if packet.isWan {
+                        _wanServer?.sendConnectMessage(for: packet.serialNumber, holePunchPort: packet.negotiatedHolePunchPort)
+                    } else {
+                        openRadio(packet)
+                    }
                 }
             }
         }
@@ -606,31 +607,31 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         var p = 0
         if delegate.guiIsEnabled {
             // GUI connection
-            packets.forEach{ packet in
+            radios.forEach{ radio in
                 newPackets.append( PickerPacket(id: p,
                                                 packetIndex: p,
-                                                type: packet.isWan ? .wan : .local,
-                                                nickname: packet.nickname,
-                                                status: ConnectionStatus(rawValue: packet.status.lowercased()) ?? .inUse,
-                                                stations: packet.guiClientStations,
-                                                serialNumber: packet.serialNumber,
-                                                isDefault: isGuiDefault(packet)))
+                                                type: radio.packet.isWan ? .wan : .local,
+                                                nickname: radio.packet.nickname,
+                                                status: ConnectionStatus(rawValue: radio.packet.status.lowercased()) ?? .inUse,
+                                                stations: radio.packet.guiClientStations,
+                                                serialNumber: radio.packet.serialNumber,
+                                                isDefault: isGuiDefault(radio.packet)))
                 p += 1
             }
 
         } else {
             // Non-Gui connection
             var i = 0
-            packets.forEach{ packet in
-                packet.guiClients.forEach { guiClient in
+            radios.forEach{ radio in
+                radio.packet.guiClients.forEach { guiClient in
                     newPackets.append( PickerPacket(id: i,
                                                     packetIndex: p,
-                                                    type: packet.isWan ? .wan : .local,
-                                                    nickname: packet.nickname,
-                                                    status: ConnectionStatus(rawValue: packet.status.lowercased()) ?? .inUse,
+                                                    type: radio.packet.isWan ? .wan : .local,
+                                                    nickname: radio.packet.nickname,
+                                                    status: ConnectionStatus(rawValue: radio.packet.status.lowercased()) ?? .inUse,
                                                     stations: guiClient.station,
-                                                    serialNumber: packet.serialNumber,
-                                                    isDefault: isNonGuiDefault(packet, guiClient)))
+                                                    serialNumber: radio.packet.serialNumber,
+                                                    isDefault: isNonGuiDefault(radio.packet, guiClient)))
                     i += 1
                 }
                 p += 1
@@ -745,9 +746,9 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     ///   - serial:     the serial number of the Radio
     ///
     public func wanConnectReady(handle: String, serial: String) {
-        for (i, packet) in Discovery.sharedInstance.discoveryPackets.enumerated() where packet.serialNumber == serial && packet.isWan {
-            Discovery.sharedInstance.discoveryPackets[i].wanHandle = handle
-            openRadio(packets[i])
+        for (i, radio) in Discovery.sharedInstance.radios.enumerated() where radio.packet.serialNumber == serial && radio.packet.isWan {
+            Discovery.sharedInstance.radios[i].packet.wanHandle = handle
+            openRadio(radio.packet)
         }
     }
 
