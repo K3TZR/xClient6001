@@ -268,7 +268,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         guard command != "" else { return }
         
         // send the command to the Radio via TCP
-        _api.radio!.sendCommand( command )
+        _api.send( command )
     }
 
     public func showView(_ type: ViewType, messages: [String] = [String]()) {
