@@ -367,7 +367,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
             // instantiate WanServer (as needed)
             if _wanServer == nil { _wanServer = WanServer(delegate: self) }
             // try to connect
-            if _wanServer!.connect(appName: (Bundle.main.infoDictionary!["CFBundleName"] as! String),
+            if _wanServer!.connectToSmartlink(appName: (Bundle.main.infoDictionary!["CFBundleName"] as! String),
                                    platform: kPlatform,
                                    idToken: idToken) {
                 smartlinkIsLoggedIn = true
@@ -379,7 +379,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
 
     public func smartlinkLogout() {
         Discovery.sharedInstance.removeSmartLinkRadios()
-        _wanServer?.disconnect()
+        _wanServer?.disconnectFromSmartlink()
         _wanServer = nil
         DispatchQueue.main.async { [self] in
             smartlinkName = nil
@@ -393,7 +393,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     ///
     public func smartlinkTest() {
         guard pickerSelection != nil else { return }
-        _wanServer?.sendTestConnection(for: pickerPackets[pickerSelection!].serialNumber)
+        _wanServer?.test( pickerPackets[pickerSelection!].serialNumber )
     }
 
     // ----------------------------------------------------------------------------
@@ -417,7 +417,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
                     _autoBind = delegate.guiIsEnabled ? nil : index
 
                     if packet.isWan {
-                        _wanServer?.sendConnectMessage(for: packet.serialNumber, holePunchPort: packet.negotiatedHolePunchPort)
+                        _wanServer?.connectTo(packet.serialNumber, holePunchPort: packet.negotiatedHolePunchPort)
                     } else {
                         openRadio(packet)
                     }
@@ -430,7 +430,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     /// - Parameter packet:   the packet of the targeted Radio
     ///
     func smartlinkClientDisconnect(_ packet: DiscoveryPacket) {
-        _wanServer?.sendDisconnectMessage(for: packet.serialNumber)
+        _wanServer?.disconnectFrom(packet.serialNumber)
     }
 
     /// Disconnect a specific local Client
@@ -525,7 +525,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
 
             // try to connect
             let appName = (Bundle.main.infoDictionary!["CFBundleName"] as! String)
-            return _wanServer!.connect(appName: appName, platform: kPlatform, idToken: idToken)
+            return _wanServer!.connectToSmartlink(appName: appName, platform: kPlatform, idToken: idToken)
         }
         // NO, user will need to reenter user / pwd to authenticate
         _log("RadioManager, SmartlinkLogin: Previous ID Token not found", .debug, #function, #file, #line)
