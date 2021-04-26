@@ -20,7 +20,7 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         .package(name: "XCGLogger", url: "https://github.com/DaveWoodCom/XCGLogger.git", from: "7.0.1"),
         .package(name: "SwiftyUserDefaults", url: "https://github.com/sunshinejr/SwiftyUserDefaults.git", from: "5.1.0"),
-        .package(name: "xLib6001", url: "https://github.com/K3TZR/xLib6001.git", from: "0.2.3"),
+        .package(name: "xLib6001", url: "https://github.com/K3TZR/xLib6001.git", from: "0.2.4"),
         .package(name: "JWTDecode", url: "https://github.com/auth0/JWTDecode.swift.git", from: "2.6.0")
     ],
     targets: [
