@@ -331,8 +331,8 @@ public class LogManager: LogHandler, ObservableObject {
         switch filterBy {
 
         case .none:      limitedLines = filteredLines
-        case .includes:  limitedLines = filteredLines.filter { $0.contains(filterByText) }
-        case .excludes:  limitedLines = filteredLines.filter { !$0.contains(filterByText) }
+        case .includes:  limitedLines = filteredLines.filter { $0.localizedCaseInsensitiveContains(filterByText) }
+        case .excludes:  limitedLines = filteredLines.filter { !$0.localizedCaseInsensitiveContains(filterByText) }
         }
         logLines = [LogLine]()
         for (i, line) in limitedLines.enumerated() {

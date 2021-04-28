@@ -11,7 +11,7 @@ import xLib6001
 import WebKit
 import JWTDecode
 
-public struct PickerPacket : Identifiable, Equatable {
+public struct PickerPacket : Identifiable, Equatable, Comparable {
     public var id         = 0
     var packetIndex       = 0
     var type: ConnectionType = .local
@@ -25,6 +25,12 @@ public struct PickerPacket : Identifiable, Equatable {
     public static func ==(lhs: PickerPacket, rhs: PickerPacket) -> Bool {
         guard lhs.serialNumber != "" else { return false }
         return lhs.connectionString == rhs.connectionString
+    }
+    public static func <(lhs: PickerPacket, rhs: PickerPacket) -> Bool {
+        if lhs.type.rawValue < rhs.type.rawValue { return true }
+        if lhs.type.rawValue == rhs.type.rawValue && lhs.nickname.lowercased() < rhs.nickname.lowercased() { return true }
+        if lhs.type.rawValue == rhs.type.rawValue && lhs.nickname.lowercased() == rhs.nickname.lowercased() && lhs.stations.lowercased() < rhs.stations.lowercased() { return true }
+        return false
     }
 }
 
@@ -637,7 +643,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
                 p += 1
             }
         }
-        return newPackets
+        return newPackets.sorted(by: {$0 < $1} )
     }
     
     /// Parse the components of a connection string
