@@ -629,7 +629,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
             // Non-Gui connection
             var i = 0
             radios.forEach{ radio in
-                radio.packet.guiClients.forEach { guiClient in
+                radio.guiClients.forEach { guiClient in
                     newPackets.append( PickerPacket(id: i,
                                                     packetIndex: p,
                                                     type: radio.packet.isWan ? .wan : .local,
