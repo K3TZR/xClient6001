@@ -248,13 +248,13 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         _api.disconnect(reason: reason)
         
         DispatchQueue.main.async { [self] in
-            if let packet = delegate.activePacket {
-                // remove all Client Id's
-                for (i, _) in packet.guiClients.enumerated() {
-                    delegate.activePacket!.guiClients[i].clientId = nil
-                }
-                delegate.activePacket = nil
-            }
+//            if let radio = activeRadio {
+//                // remove all Client Id's
+//                for (i, _) in radio.guiClients.enumerated() {
+//                    delegate.activePacket!.guiClients[i].clientId = nil
+//                }
+//                delegate.activePacket = nil
+//            }
             activeRadio = nil
             isConnected = false
         }
@@ -425,7 +425,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
                     if packet.isWan {
                         _wanServer?.connectTo(packet.serialNumber, holePunchPort: packet.negotiatedHolePunchPort)
                     } else {
-                        openRadio(packet)
+                        openRadio(radios[packetIndex])
                     }
                 }
             }
@@ -454,20 +454,20 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     /// Determine the state of the Radio being opened and allow the user to choose how to proceed
     /// - Parameter packet:     the packet describing the Radio to be opened
     ///
-    private func openRadio(_ packet: DiscoveryPacket) {
+    private func openRadio(_ radio: Radio) {
         guard delegate.guiIsEnabled else {
-            connectToRadio(packet, isGui: delegate.guiIsEnabled, station: delegate.stationName)
+            connectToRadio(radio.packet, isGui: delegate.guiIsEnabled, station: delegate.stationName)
             return
         }
         
-        switch (Version(packet.firmwareVersion).isNewApi, packet.status.lowercased(), packet.guiClients.count) {
+        switch (Version(radio.packet.firmwareVersion).isNewApi, radio.packet.status.lowercased(), radio.guiClients.count) {
         
         case (false, kAvailable, _):          // oldApi, not connected to another client
-            connectToRadio(packet, isGui: delegate.guiIsEnabled, station: delegate.stationName)
+            connectToRadio(radio.packet, isGui: delegate.guiIsEnabled, station: delegate.stationName)
             
         case (false, kInUse, _):              // oldApi, connected to another client
             let firstButtonAction = { [self] in
-                connectToRadio(packet, isGui: delegate.guiIsEnabled, pendingDisconnect: .oldApi, station: delegate.stationName)
+                connectToRadio(radio.packet, isGui: delegate.guiIsEnabled, pendingDisconnect: .oldApi, station: delegate.stationName)
                 sleep(1)
                 _api.disconnect()
                 sleep(1)
@@ -483,20 +483,20 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
             showView(.genericAlert)
 
         case (true, kAvailable, 0):           // newApi, not connected to another client
-            connectToRadio(packet, station: delegate.stationName)
+            connectToRadio(radio.packet, station: delegate.stationName)
             
         case (true, kAvailable, _):           // newApi, connected to another client
             let firstButtonAction = { [self] in
-                connectToRadio(packet, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: packet.guiClients[0].handle), station: delegate.stationName)
+                connectToRadio(radio.packet, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: radio.guiClients[0].handle), station: delegate.stationName)
             }
             let secondButtonAction = { [self] in
-                connectToRadio(packet, isGui: delegate.guiIsEnabled, station: delegate.stationName)
+                connectToRadio(radio.packet, isGui: delegate.guiIsEnabled, station: delegate.stationName)
             }
             currentAlert = AlertParams(title: "Radio is connected to Station",
-                                      message: packet.guiClients[0].station,
+                                       message: radio.guiClients[0].station,
                                       symbolName: "exclamationmark.triangle",
                                       buttons: [
-                                        AlertButton( "Close \(packet.guiClients[0].station)", firstButtonAction ),
+                                        AlertButton( "Close \(radio.guiClients[0].station)", firstButtonAction ),
                                         AlertButton( "Multiflex Connect", secondButtonAction),
                                         AlertButton( "Cancel", {})
                                       ])
@@ -504,15 +504,15 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
 
         case (true, kInUse, 2):               // newApi, connected to 2 clients
             let firstButtonAction = { [self] in
-                connectToRadio(packet, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: packet.guiClients[0].handle), station: delegate.stationName)      }
+                connectToRadio(radio.packet, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: radio.guiClients[0].handle), station: delegate.stationName)      }
             let secondButtonAction = { [self] in
-                connectToRadio(packet, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: packet.guiClients[1].handle), station: delegate.stationName)      }
+                connectToRadio(radio.packet, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: radio.guiClients[1].handle), station: delegate.stationName)      }
             currentAlert = AlertParams(title: "Radio is connected to multiple Stations",
                                       message: "",
                                       symbolName: "exclamationmark.triangle",
                                       buttons: [
-                                        AlertButton( "Close \(packet.guiClients[0].station)", firstButtonAction ),
-                                        AlertButton( "Close \(packet.guiClients[1].station)", secondButtonAction),
+                                        AlertButton( "Close \(radio.guiClients[0].station)", firstButtonAction ),
+                                        AlertButton( "Close \(radio.guiClients[1].station)", secondButtonAction),
                                         AlertButton( "Cancel", {})
                                       ])
             showView(.genericAlert)
@@ -754,7 +754,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     public func wanConnectReady(handle: String, serial: String) {
         for (i, radio) in Discovery.sharedInstance.radios.enumerated() where radio.packet.serialNumber == serial && radio.packet.isWan {
             Discovery.sharedInstance.radios[i].packet.wanHandle = handle
-            openRadio(radio.packet)
+            openRadio(radio)
         }
     }
 
