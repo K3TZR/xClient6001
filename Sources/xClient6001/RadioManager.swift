@@ -94,7 +94,7 @@ public enum ViewType: Hashable, Identifiable {
 }
 
 public protocol RadioManagerDelegate {
-    var activePacket: DiscoveryPacket?      {get set}
+//    var activePacket: DiscoveryPacket?      {get set}
     var clientId: String?                   {get set}
     var defaultNonGuiConnection: String?    {get set}
     var defaultGuiConnection: String?       {get set}
@@ -120,7 +120,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     // ----------------------------------------------------------------------------
     // MARK: - Public properties
     
-    @Published public var activeRadio: Radio?
+    @Published public var activeRadio: Int?
     @Published public var activeView: ViewType?
     @Published public var isConnected = false
     @Published public var pickerHeading: String?
@@ -135,6 +135,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     @Published public var smartlinkShowTestResults = false
     @Published public var smartlinkTestStatus = false
     
+    public var radios: [Radio] { Discovery.sharedInstance.radios }
     public var currentAlert = AlertParams()
     public var delegate: RadioManagerDelegate!
     public var sheetType: ViewType = .radioPicker
@@ -144,7 +145,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     // MARK: - Internal properties
     
     var auth0UrlString = ""
-    var radios: [Radio] { Discovery.sharedInstance.radios }
 
     // ----------------------------------------------------------------------------
     // MARK: - Private properties
@@ -412,7 +412,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     ///
     func connectRadio(at index: Int?) {
         if let index = index {
-            guard delegate.activePacket == nil else { disconnect() ; return }
+            guard activeRadio == nil else { disconnect() ; return }
             
             let packetIndex = delegate.guiIsEnabled ? index : pickerPackets[index].packetIndex
             
@@ -559,7 +559,9 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     /// - Parameter id:     a Client Id
     ///
     private func bindToClientId(_ id: String) {
-        activeRadio?.boundClientId = id
+        if let index = activeRadio {
+            radios[index].boundClientId = id
+        }
     }
     
     /// Attempt to open a connection to the specified Radio
@@ -697,11 +699,12 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     }
     
     @objc private func clientDidConnect(_ note: Notification) {
-        if let radio = note.object as? Radio {
+        if let connectedRadio = note.object as? Radio {
             DispatchQueue.main.async { [self] in
-                delegate.activePacket = radio.packet
-                activeRadio = radio
-                isConnected = true
+                for (i, radio) in radios.enumerated() where radio.packet == connectedRadio.packet {
+                    activeRadio = i
+                    isConnected = true
+                }
             }
         }
     }
