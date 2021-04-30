@@ -574,14 +574,14 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         let stationName = (station == "" ? kStation : station)
         
         // attempt a connection
-        if _api.connect(index,
-                     station           : stationName,
-                     program           : Bundle.main.infoDictionary!["CFBundleName"] as! String,
-                     clientId          : isGui ? delegate.clientId : nil,
-                     isGui             : isGui,
-                     wanHandle         : radios[index].packet.wanHandle,
-                     logState: .none,
-                     pendingDisconnect : pendingDisconnect) {
+        if _api.connect(index: index,
+                        station: stationName,
+                        program: Bundle.main.infoDictionary!["CFBundleName"] as! String,
+                        clientId: isGui ? delegate.clientId : nil,
+                        isGui: isGui,
+                        wanHandle: radios[index].packet.wanHandle,
+                        logState: .none,
+                        pendingDisconnect: pendingDisconnect) {
 
             delegate.didConnect()
         } else {
