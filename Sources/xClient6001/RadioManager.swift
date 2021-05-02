@@ -120,7 +120,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     // ----------------------------------------------------------------------------
     // MARK: - Public properties
     
-    @Published public var activeRadio: Int?
     @Published public var activeView: ViewType?
     @Published public var isConnected = false
     @Published public var pickerHeading: String?
@@ -135,6 +134,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     @Published public var smartlinkShowTestResults = false
     @Published public var smartlinkTestStatus = false
     
+    public var activeRadio: Radio? { Api.sharedInstance.activeRadio}
     public var radios: [Radio] { Discovery.sharedInstance.radios }
     public var currentAlert = AlertParams()
     public var delegate: RadioManagerDelegate!
@@ -247,7 +247,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         // tell the library to disconnect
         _api.disconnect(reason: reason)
         
-        DispatchQueue.main.async { [self] in
+//        DispatchQueue.main.async { [self] in
 //            if let radio = activeRadio {
 //                // remove all Client Id's
 //                for (i, _) in radio.guiClients.enumerated() {
@@ -255,9 +255,9 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
 //                }
 //                delegate.activePacket = nil
 //            }
-            activeRadio = nil
-            isConnected = false
-        }
+//            activeRadio = nil
+//            isConnected = false
+//        }
         // if anything unusual, tell the user
         if reason != RadioManager.kUserInitiated {
             currentAlert = AlertParams(title: "Radio was disconnected",
@@ -559,9 +559,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     /// - Parameter id:     a Client Id
     ///
     private func bindToClientId(_ id: String) {
-        if let index = activeRadio {
-            radios[index].boundClientId = id
-        }
+        activeRadio?.boundClientId = id
     }
     
     /// Attempt to open a connection to the specified Radio
@@ -699,14 +697,10 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     }
     
     @objc private func clientDidConnect(_ note: Notification) {
-        if let connectedRadio = note.object as? Radio {
-            DispatchQueue.main.async { [self] in
-                for (i, radio) in radios.enumerated() where radio.packet == connectedRadio.packet {
-                    activeRadio = i
-                    isConnected = true
-                }
-            }
+        DispatchQueue.main.async { [self] in
+            isConnected = true
         }
+
     }
     
     @objc private func clientDidDisconnect(_ note: Notification) {
