@@ -247,7 +247,7 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         // tell the library to disconnect
         _api.disconnect(reason: reason)
         
-//        DispatchQueue.main.async { [self] in
+        DispatchQueue.main.async { [self] in
 //            if let radio = activeRadio {
 //                // remove all Client Id's
 //                for (i, _) in radio.guiClients.enumerated() {
@@ -256,8 +256,8 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
 //                delegate.activePacket = nil
 //            }
 //            activeRadio = nil
-//            isConnected = false
-//        }
+            isConnected = false
+        }
         // if anything unusual, tell the user
         if reason != RadioManager.kUserInitiated {
             currentAlert = AlertParams(title: "Radio was disconnected",
