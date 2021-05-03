@@ -460,32 +460,35 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
             return
         }
         
-        switch (Version(radios[index].packet.firmwareVersion).isNewApi, radios[index].packet.status.lowercased(), radios[index].guiClients.count) {
-        
-        case (false, kAvailable, _):          // oldApi, not connected to another client
-            connectToRadio(at: index, isGui: delegate.guiIsEnabled, station: delegate.stationName)
-            
-        case (false, kInUse, _):              // oldApi, connected to another client
-            let firstButtonAction = { [self] in
-                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .oldApi, station: delegate.stationName)
-                sleep(1)
-                _api.disconnect()
-                sleep(1)
-                showView(.radioPicker)
-            }
-            currentAlert = AlertParams(title: "Radio is connected to another Client",
-                                      message: "",
-                                      symbolName: "exclamationmark.triangle",
-                                      buttons: [
-                                        AlertButton( "Close this client", firstButtonAction ),
-                                        AlertButton( "Cancel", {})
-                                      ])
-            showView(.genericAlert)
+//        switch (Version(radios[index].packet.firmwareVersion).isNewApi, radios[index].packet.status.lowercased(), radios[index].guiClients.count) {
+        switch (radios[index].packet.status.lowercased(), radios[index].guiClients.count) {
 
-        case (true, kAvailable, 0):           // newApi, not connected to another client
+//        case (false, kAvailable, _):          // oldApi, not connected to another client
+//            connectToRadio(at: index, isGui: delegate.guiIsEnabled, station: delegate.stationName)
+//
+//        case (false, kInUse, _):              // oldApi, connected to another client
+//            let firstButtonAction = { [self] in
+//                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .oldApi, station: delegate.stationName)
+//                sleep(1)
+//                _api.disconnect()
+//                sleep(1)
+//                showView(.radioPicker)
+//            }
+//            currentAlert = AlertParams(title: "Radio is connected to another Client",
+//                                      message: "",
+//                                      symbolName: "exclamationmark.triangle",
+//                                      buttons: [
+//                                        AlertButton( "Close this client", firstButtonAction ),
+//                                        AlertButton( "Cancel", {})
+//                                      ])
+//            showView(.genericAlert)
+
+//        case (true, kAvailable, 0):           // newApi, not connected to another client
+        case (kAvailable, 0):           // not connected to another client
             connectToRadio(at: index, station: delegate.stationName)
             
-        case (true, kAvailable, _):           // newApi, connected to another client
+//        case (true, kAvailable, _):           // newApi, connected to another client
+        case (kAvailable, _):           // connected to another client
             let firstButtonAction = { [self] in
                 connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: radios[index].guiClients[0].handle), station: delegate.stationName)
             }
@@ -502,7 +505,8 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
                                       ])
             showView(.genericAlert)
 
-        case (true, kInUse, 2):               // newApi, connected to 2 clients
+//        case (true, kInUse, 2):               // newApi, connected to 2 clients
+        case (kInUse, 2):               // connected to 2 clients
             let firstButtonAction = { [self] in
                 connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: radios[index].guiClients[0].handle), station: delegate.stationName)      }
             let secondButtonAction = { [self] in
@@ -572,14 +576,14 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         let stationName = (station == "" ? kStation : station)
         
         // attempt a connection
-        if _api.connect(index: index,
-                        station: stationName,
-                        program: Bundle.main.infoDictionary!["CFBundleName"] as! String,
-                        clientId: isGui ? delegate.clientId : nil,
-                        isGui: isGui,
-                        wanHandle: radios[index].packet.wanHandle,
-                        logState: .none,
-                        pendingDisconnect: pendingDisconnect) {
+        if _api.connect( Api.ConnectionParams(index: index,
+                                              station: stationName,
+                                              program: Bundle.main.infoDictionary!["CFBundleName"] as! String,
+                                              clientId: isGui ? delegate.clientId : nil,
+                                              isGui: isGui,
+                                              wanHandle: radios[index].packet.wanHandle,
+                                              logState: .none,
+                                              pendingDisconnect: pendingDisconnect)) {
 
             delegate.didConnect()
         } else {
