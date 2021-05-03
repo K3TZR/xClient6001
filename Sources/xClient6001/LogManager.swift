@@ -26,7 +26,7 @@ import SwiftUI
 //
 // ----------------------------------------------------------------------------
 
-public class LogManager: LogHandler, ObservableObject {
+public class LogManager: ObservableObject {
     // ----------------------------------------------------------------------------
     // MARK: - Static properties
     
@@ -183,30 +183,6 @@ public class LogManager: LogHandler, ObservableObject {
             fatalError("Logging failure:, unable to find / create Log folder")
         }
     }
-    
-    // ----------------------------------------------------------------------------
-    // MARK: - LogHandlerDelegate methods
-    
-    /// Process log messages
-    /// - Parameters:
-    ///   - msg:        a message
-    ///   - level:      the severity level of the message
-    ///   - function:   the name of the function creating the msg
-    ///   - file:       the name of the file containing the function
-    ///   - line:       the line number creating the msg
-    ///
-    public func logMessage(_ msg: String, _ level: MessageLevel, _ function: StaticString, _ file: StaticString, _ line: Int) -> Void {
-        // Log Handler to support XCGLogger
-        switch level {
-
-        case .verbose:  log.verbose(msg, functionName: function, fileName: file, lineNumber: line )
-        case .debug:    log.debug(msg, functionName: function, fileName: file, lineNumber: line)
-        case .info:     log.info(msg, functionName: function, fileName: file, lineNumber: line)
-        case .warning:  log.warning(msg, functionName: function, fileName: file, lineNumber: line)
-        case .error:    log.error(msg, functionName: function, fileName: file, lineNumber: line)
-        case .severe:   log.severe(msg, functionName: function, fileName: file, lineNumber: line)
-        }
-    }
 
     // ----------------------------------------------------------------------------
     // MARK: - LoggerView actions
@@ -343,42 +319,34 @@ public class LogManager: LogHandler, ObservableObject {
 }
 
 // ----------------------------------------------------------------------------
-// MARK: - Extensions
 
-//extension URL {
-//    /// setup the Support folders
-//    ///
-//    static var appSupport: URL { return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first! }
-//
-//    static func createLogFolder(domain: String, appName: String) -> URL? {
-//        return createAsNeeded(domain + "." + appName + "/Logs")
-//    }
-//
-//    static func createAsNeeded(_ folder: String) -> URL? {
-//        let fileManager = FileManager.default
-//        let folderUrl = appSupport.appendingPathComponent( folder )
-//
-//        // does the folder exist?
-//        if fileManager.fileExists( atPath: folderUrl.path ) == false {
-//            // NO, create it
-//            do {
-//                try fileManager.createDirectory( at: folderUrl, withIntermediateDirectories: true, attributes: nil)
-//            } catch {
-//                return nil
-//            }
-//        }
-//        return folderUrl
-//    }
-//}
+extension LogManager: LogHandler {
+    /// Process log messages
+    /// - Parameters:
+    ///   - msg:        a message
+    ///   - level:      the severity level of the message
+    ///   - function:   the name of the function creating the msg
+    ///   - file:       the name of the file containing the function
+    ///   - line:       the line number creating the msg
+    public func logMessage(_ msg: String, _ level: MessageLevel, _ function: StaticString, _ file: StaticString, _ line: Int) -> Void {
+        // Log Handler to support XCGLogger
+        switch level {
+
+        case .verbose:  log.verbose(msg, functionName: function, fileName: file, lineNumber: line )
+        case .debug:    log.debug(msg, functionName: function, fileName: file, lineNumber: line)
+        case .info:     log.info(msg, functionName: function, fileName: file, lineNumber: line)
+        case .warning:  log.warning(msg, functionName: function, fileName: file, lineNumber: line)
+        case .error:    log.error(msg, functionName: function, fileName: file, lineNumber: line)
+        case .severe:   log.severe(msg, functionName: function, fileName: file, lineNumber: line)
+        }
+    }
+}
 
 extension String {
     var expandingTilde: String { NSString(string: self).expandingTildeInPath }
 }
 
 extension URL {
-
-  /// setup the Support folders
-  ///
   static var appSupport : URL { return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first! }
   static var logs : URL? { return createAsNeeded("net.k3tzr.xApiMac/Logs") }
   static var macros : URL? { return createAsNeeded("net.k3tzr.xApiMac/Macros") }

@@ -73,7 +73,6 @@ final public class AuthManager {
     /// Obtain an Id Token from previous credentials
     /// - Parameter userEmail:      saved email (if any)
     /// - Returns:                  an ID Token (if any)
-    ///
     public func getExistingIdToken() -> IdToken? {
         // is there a saved Auth0 token which has not expired?
         if let previousToken = _previousIdToken, isValid(previousToken) {
@@ -102,7 +101,6 @@ final public class AuthManager {
     ///   - user:       User name
     ///   - pwd:        User password
     /// - Returns:      an Id Token (if any)
-    ///
     public func requestTokens(for user: String, pwd: String) -> IdToken? {
         // build the request
         var request = URLRequest(url: URL(string: kAuth0Authenticate)!)
@@ -134,7 +132,6 @@ final public class AuthManager {
     /// Given a Refresh Token, request an ID Token
     /// - Parameter refreshToken:     a Refresh Token
     /// - Returns:                    an Id Token (if any)
-    ///
     public func requestIdToken(from refreshToken: String) -> IdToken? {
         // build the request
         var request = URLRequest(url: URL(string: kAuth0Delegation)!)
@@ -166,7 +163,6 @@ final public class AuthManager {
     /// Validate an Id Token
     /// - Parameter idToken:        the Id Token
     /// - Returns:                  true / false
-    ///
     public func isValid(_ idToken: IdToken?) -> Bool {
         if let token = idToken {
             if let jwt = try? decode(jwt: token) {
@@ -177,14 +173,12 @@ final public class AuthManager {
         return false
     }
 
-
     // ----------------------------------------------------------------------------
     // MARK: - Private methods
 
     /// Perform a URL Request
     /// - Parameter urlRequest:     the Request
     /// - Returns:                  an Id Token (if any)
-    ///
     private func performRequest(_ request: URLRequest, for keys: [String]) -> [String?] {
         // retrieve the data
         let (responseData, error) = URLSession.shared.synchronousDataTask(with: request)
@@ -197,7 +191,6 @@ final public class AuthManager {
 
     /// Create the Body Data for obtaining an Id Token give a Refresh Token
     /// - Returns:                    the Data (if created)
-    ///
     private func createRefreshTokenBodyData(for refreshToken: String) -> Data? {
         var dict = [String : String]()
 
@@ -212,7 +205,6 @@ final public class AuthManager {
 
     /// Create the Body Data for obtaining an Id Token give a User Id / Password
     /// - Returns:                    the Data (if created)
-    ///
     private func createTokensBodyData(for user: String, pwd: String) -> Data? {
         var dict = [String : String]()
 
@@ -232,7 +224,6 @@ final public class AuthManager {
     ///   - data:       the Data
     ///   - keys:       an array of keys
     /// - Returns:      an array of values (some may be nil)
-    ///
     private func parseJson(_ data: Data, for keys: [String]) -> [String?] {
         var values = [String?]()
 
@@ -249,16 +240,13 @@ final public class AuthManager {
     /// Convert a JSON dictionary to a Data
     /// - Parameter dict:   the dictionary
     /// - Returns:          a Data
-    ///
     private func serialize(_ dict: Dictionary<String,String>) -> Data? {
         // try to serialize the data
         return try? JSONSerialization.data(withJSONObject: dict)
     }
 
-
     /// Update the Smartlink picture and email
     /// - Parameter idToken:    the Id Token
-    ///
     private func updateClaims(from idToken: IdToken?) {
         if let idToken = idToken, let jwt = try? decode(jwt: idToken) {
             DispatchQueue.main.async { [self] in 
@@ -268,11 +256,9 @@ final public class AuthManager {
         }
     }
 
-
     /// Given a claim, retrieve the gravatar image
     /// - Parameter claimString:    a "picture" claim string
     /// - Returns:                  the image
-    ///
     #if os(macOS)
     private func getImage(_ claimString: String?) -> Image {
         if let urlString = claimString, let url = URL(string: urlString) {
@@ -293,6 +279,8 @@ final public class AuthManager {
     }
     #endif
 }
+
+// ----------------------------------------------------------------------------
 
 extension URLSession {
     func synchronousDataTask(with urlRequest: URLRequest, timeout: DispatchTimeInterval = .seconds(10)) -> (Data?, Error?) {

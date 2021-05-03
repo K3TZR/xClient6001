@@ -94,7 +94,6 @@ public enum ViewType: Hashable, Identifiable {
 }
 
 public protocol RadioManagerDelegate {
-//    var activePacket: DiscoveryPacket?      {get set}
     var clientId: String?                   {get set}
     var defaultNonGuiConnection: String?    {get set}
     var defaultGuiConnection: String?       {get set}
@@ -109,7 +108,7 @@ public protocol RadioManagerDelegate {
     func willDisconnect()
 }
 
-public final class RadioManager: ObservableObject, WanServerDelegate {
+public final class RadioManager: ObservableObject {
     typealias connectionTuple = (type: String, serialNumber: String, station: String)
     
     // ----------------------------------------------------------------------------
@@ -247,17 +246,8 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         // tell the library to disconnect
         _api.disconnect(reason: reason)
         
-        DispatchQueue.main.async { [self] in
-//            if let radio = activeRadio {
-//                // remove all Client Id's
-//                for (i, _) in radio.guiClients.enumerated() {
-//                    delegate.activePacket!.guiClients[i].clientId = nil
-//                }
-//                delegate.activePacket = nil
-//            }
-//            activeRadio = nil
-            isConnected = false
-        }
+        DispatchQueue.main.async { self.isConnected = false }
+
         // if anything unusual, tell the user
         if reason != RadioManager.kUserInitiated {
             currentAlert = AlertParams(title: "Radio was disconnected",
@@ -460,37 +450,14 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
             return
         }
         
-//        switch (Version(radios[index].packet.firmwareVersion).isNewApi, radios[index].packet.status.lowercased(), radios[index].guiClients.count) {
         switch (radios[index].packet.status.lowercased(), radios[index].guiClients.count) {
 
-//        case (false, kAvailable, _):          // oldApi, not connected to another client
-//            connectToRadio(at: index, isGui: delegate.guiIsEnabled, station: delegate.stationName)
-//
-//        case (false, kInUse, _):              // oldApi, connected to another client
-//            let firstButtonAction = { [self] in
-//                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .oldApi, station: delegate.stationName)
-//                sleep(1)
-//                _api.disconnect()
-//                sleep(1)
-//                showView(.radioPicker)
-//            }
-//            currentAlert = AlertParams(title: "Radio is connected to another Client",
-//                                      message: "",
-//                                      symbolName: "exclamationmark.triangle",
-//                                      buttons: [
-//                                        AlertButton( "Close this client", firstButtonAction ),
-//                                        AlertButton( "Cancel", {})
-//                                      ])
-//            showView(.genericAlert)
-
-//        case (true, kAvailable, 0):           // newApi, not connected to another client
         case (kAvailable, 0):           // not connected to another client
             connectToRadio(at: index, station: delegate.stationName)
             
-//        case (true, kAvailable, _):           // newApi, connected to another client
-        case (kAvailable, _):           // connected to another client
+        case (kAvailable, 1):           // connected to another client
             let firstButtonAction = { [self] in
-                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: radios[index].guiClients[0].handle), station: delegate.stationName)
+                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[0].handle), station: delegate.stationName)
             }
             let secondButtonAction = { [self] in
                 connectToRadio(at: index, isGui: delegate.guiIsEnabled, station: delegate.stationName)
@@ -505,12 +472,11 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
                                       ])
             showView(.genericAlert)
 
-//        case (true, kInUse, 2):               // newApi, connected to 2 clients
         case (kInUse, 2):               // connected to 2 clients
             let firstButtonAction = { [self] in
-                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: radios[index].guiClients[0].handle), station: delegate.stationName)      }
+                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[0].handle), station: delegate.stationName)      }
             let secondButtonAction = { [self] in
-                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .newApi(handle: radios[index].guiClients[1].handle), station: delegate.stationName)      }
+                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[1].handle), station: delegate.stationName)      }
             currentAlert = AlertParams(title: "Radio is connected to multiple Stations",
                                       message: "",
                                       symbolName: "exclamationmark.triangle",
@@ -528,7 +494,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
 
     /// Open a connection to the SmartLink server using existing credentials
     /// - Parameter auth0Email:     saved email (if any)
-    ///
     private func smartlinkConnect() -> Bool {
         // is there an Id Token available?
         if let idToken = _authManager.getExistingIdToken() {
@@ -545,7 +510,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     /// Given aTuple find a match in PickerPackets
     /// - Parameter conn: a Connection Tuple
     /// - Returns: the index into Packets (if any) of a match
-    ///
     private func findMatchingConnection(_ conn: connectionTuple) -> Int? {
         for (i, packet) in pickerPackets.enumerated() {
             if packet.serialNumber == conn.serialNumber && packet.type.rawValue == conn.type {
@@ -561,7 +525,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     
     /// Cause a bind command to be sent
     /// - Parameter id:     a Client Id
-    ///
     private func bindToClientId(_ id: String) {
         activeRadio?.boundClientId = id
     }
@@ -570,7 +533,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     /// - Parameters:
     ///   - packet:             the packet describing the Radio
     ///   - pendingDisconnect:  a struct describing a pending disconnect (if any)
-    ///
     private func connectToRadio(at index: Int, isGui: Bool = true, pendingDisconnect: Api.PendingDisconnect = .none, station: String = "") {
         // station will be "Mac" if not passed
         let stationName = (station == "" ? kStation : station)
@@ -597,7 +559,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
 
     /// Create a subset of DiscoveryPackets
     /// - Returns:                an array of PickerPacket
-    ///
     private func getPickerPackets() -> [PickerPacket] {
         var newPackets = [PickerPacket]()
 
@@ -653,7 +614,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
     /// Parse the components of a connection string
     /// - Parameter connectionString:   a string of the form <type>.<serialNumber>
     /// - Returns:                      a tuple containing the parsed values (if any)
-    ///
     private func parseConnectionString(_ connectionString: String) -> (type: String, serialNumber: String, station: String)? {
         // A Connection is stored as a String in the form:
         //      "<type>.<serial number>"  OR  "<type>.<serial number>.<station>"
@@ -731,15 +691,12 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
             }
         }
     }
+}
 
-    // ----------------------------------------------------------------------------
-    // MARK: - WanServerDelegate methods
+// ----------------------------------------------------------------------------
 
-    /// Receives the SmartLink UserName and Callsign from the WanServer
-    /// - Parameters:
-    ///   - name:       the SmartLInk User name
-    ///   - call:       the SmartLink Callsign
-    ///
+extension RadioManager: WanServerDelegate {
+
     public func wanSettings(name: String, call: String) {
         DispatchQueue.main.async{ [self] in
             smartlinkName = name
@@ -747,11 +704,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         }
     }
 
-    /// Receives the Wan Handle from the WanServer
-    /// - Parameters:
-    ///   - handle:     the Wan handle
-    ///   - serial:     the serial number of the Radio
-    ///
     public func wanConnectReady(handle: String, serial: String) {
         for (i, radio) in Discovery.sharedInstance.radios.enumerated() where radio.packet.serialNumber == serial && radio.packet.isWan {
             Discovery.sharedInstance.radios[i].packet.wanHandle = handle
@@ -759,9 +711,6 @@ public final class RadioManager: ObservableObject, WanServerDelegate {
         }
     }
 
-    /// Receives the SmartLink test results from the WanServer
-    /// - Parameter results:    the test results
-    ///
     public func wanTestResults(_ results: WanTestConnectionResults) {
         // assess the result
         let success = (results.forwardTcpPortWorking == true &&
