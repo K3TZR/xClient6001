@@ -100,6 +100,7 @@ public protocol RadioManagerDelegate {
     var guiIsEnabled: Bool                  {get}
     var smartlinkEmail: String?             {get set}
     var smartlinkIsEnabled: Bool            {get set}
+    var smartlinkWasLoggedIn: Bool          {get set}
     var stationName: String                 {get set}
 
     func willConnect()

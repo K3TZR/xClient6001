@@ -20,6 +20,7 @@ class MockRadioManagerDelegate: RadioManagerDelegate {
     var smartlinkEmail: String?
     var smartlinkIsEnabled = true
     var smartlinkIsLoggedIn = true
+    var smartlinkWasLoggedIn = true
     var smartlinkUserImage: Image?
     var stationName = "MockStation"
 
