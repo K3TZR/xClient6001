@@ -100,7 +100,6 @@ public protocol RadioManagerDelegate {
     var guiIsEnabled: Bool                  {get}
     var smartlinkEmail: String?             {get set}
     var smartlinkIsEnabled: Bool            {get set}
-    var smartlinkWasLoggedIn: Bool          {get set}
     var stationName: String                 {get set}
 
     func willConnect()
@@ -351,7 +350,6 @@ public final class RadioManager: ObservableObject {
         // attempt a SmartLink login using existing credentials
         if smartlinkConnect() {
             smartlinkIsLoggedIn = true
-            delegate.smartlinkWasLoggedIn = true
             if showPicker { showView(.radioPicker) }
 
         } else {
@@ -370,7 +368,6 @@ public final class RadioManager: ObservableObject {
                                    idToken: idToken) {
                 smartlinkIsLoggedIn = true
                 delegate.smartlinkEmail = email
-                delegate.smartlinkWasLoggedIn = true
                 showView(.radioPicker)
             }
         }
@@ -385,7 +382,6 @@ public final class RadioManager: ObservableObject {
             smartlinkCallsign = nil
             smartlinkImage = nil
             smartlinkIsLoggedIn = false
-            delegate.smartlinkWasLoggedIn = false
         }
     }
 
