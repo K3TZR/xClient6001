@@ -422,20 +422,16 @@ public final class RadioManager: ObservableObject {
         }
     }
 
-    /// Disconnect a specific Smartlink Client
-    /// - Parameter packet:   the packet of the targeted Radio
-    ///
-    func smartlinkClientDisconnect(_ packet: DiscoveryPacket) {
-        _wanServer?.disconnectFrom(packet.serialNumber)
-    }
-
-    /// Disconnect a specific local Client
+    /// Disconnect another client (not this one))
     /// - Parameters:
-    ///   - packet:         a packet describing the Client
-    ///   - handle:         the Client's connection handle
-    ///
-    func localClientDisconnect(packet: DiscoveryPacket, handle: Handle) {
-        _api.requestClientDisconnect( packet: packet, handle: handle)
+    ///   - packet: the radio's DiscoveryPacket
+    ///   - handle: the handle to disconnect
+    func clientDisconnect(_ packet: DiscoveryPacket, handle: Handle) {
+        if packet.isWan {
+            _wanServer?.disconnectFrom( packet.serialNumber )
+        } else {
+            _api.requestClientDisconnect( handle: handle )
+        }
     }
 
     // ----------------------------------------------------------------------------
