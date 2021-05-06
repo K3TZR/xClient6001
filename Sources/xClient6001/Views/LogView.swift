@@ -13,14 +13,11 @@ import MessageUI
 /// A View to display the contents of the app's log
 ///
 public struct LogView: View {
-    @ObservedObject var logManager : LogManager
-    @ObservedObject var radioManager : RadioManager
+    @EnvironmentObject var logManager: LogManager
+    @EnvironmentObject var radioManager: RadioManager
     @Environment(\.presentationMode) var presentationMode
 
-    public init(logManager: LogManager, radioManager : RadioManager) {
-        self.logManager = logManager
-        self.radioManager = radioManager
-    }
+    public init() {}
 
     public var body: some View {
         
@@ -253,6 +250,8 @@ public struct MailView: UIViewControllerRepresentable {
 
 public struct LoggerView_Previews: PreviewProvider {
     public static var previews: some View {
-        LogView(logManager: LogManager.sharedInstance, radioManager: RadioManager(delegate: MockRadioManagerDelegate()))
+        LogView()
+            .environmentObject(LogManager.sharedInstance)
+            .environmentObject(RadioManager(delegate: MockRadioManagerDelegate()))
     }
 }
