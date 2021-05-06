@@ -13,20 +13,23 @@ import MessageUI
 /// A View to display the contents of the app's log
 ///
 public struct LogView: View {
-    @EnvironmentObject var logManager : LogManager
-    @EnvironmentObject var radioManager : RadioManager
+    @ObservedObject var logManager : LogManager
+    @ObservedObject var radioManager : RadioManager
     @Environment(\.presentationMode) var presentationMode
 
-    public init() {}
+    public init(logManager: LogManager, radioManager : RadioManager) {
+        self.logManager = logManager
+        self.radioManager = radioManager
+    }
 
     public var body: some View {
         
         VStack {
-            LogHeaderView()
+            LogHeaderView(logManager: logManager)
             Divider()
-            LogBodyView()
+            LogBodyView(logManager: logManager)
             Divider()
-            LogFooterView()
+            LogFooterView(logManager: logManager)
         }
         .frame(minWidth: 700)
         .padding(.horizontal)
@@ -41,7 +44,7 @@ public struct LogView: View {
 }
 
 struct LogHeaderView: View {
-    @EnvironmentObject var logManager: LogManager
+    @ObservedObject var logManager: LogManager
 
     var body: some View {
         #if os(macOS)
@@ -96,7 +99,7 @@ struct LogHeaderView: View {
 }
 
 struct LogBodyView: View {
-    @EnvironmentObject var logManager: LogManager
+    @ObservedObject var logManager: LogManager
 
     func lineColor(_ text: String) -> Color {
         if text.contains("[Debug]") {
@@ -127,7 +130,7 @@ struct LogBodyView: View {
 }
 
 struct LogFooterView: View {
-    @EnvironmentObject var logManager: LogManager
+    @ObservedObject var logManager: LogManager
 
     #if os(macOS)
     var body: some View {
@@ -250,8 +253,6 @@ public struct MailView: UIViewControllerRepresentable {
 
 public struct LoggerView_Previews: PreviewProvider {
     public static var previews: some View {
-        LogView()
-            .environmentObject(RadioManager(delegate: MockRadioManagerDelegate()))
-            .environmentObject(LogManager.sharedInstance)
+        LogView(logManager: LogManager.sharedInstance, radioManager: RadioManager(delegate: MockRadioManagerDelegate()))
     }
 }

@@ -312,21 +312,25 @@ public final class RadioManager: ObservableObject {
     }
     
     public func defaultClear() {
-        if delegate.guiIsEnabled {
-            delegate.defaultGuiConnection = nil
-        } else {
-            delegate.defaultNonGuiConnection = nil
+        DispatchQueue.main.async { [self] in
+            if delegate.guiIsEnabled {
+                delegate.defaultGuiConnection = nil
+            } else {
+                delegate.defaultNonGuiConnection = nil
+            }
         }
     }
        
     public func defaultSet(_ packet: PickerPacket?) {
-        switch (packet, delegate.guiIsEnabled) {
-        
-        case (nil, true):   delegate.defaultGuiConnection = nil
-
-        case (nil, false):  delegate.defaultNonGuiConnection = nil
-        case (_, true):     delegate.defaultGuiConnection = packet!.connectionString
-        case (_, false):    delegate.defaultNonGuiConnection = packet!.connectionString + "." + packet!.stations
+        DispatchQueue.main.async { [self] in
+            switch (packet, delegate.guiIsEnabled) {
+            
+            case (nil, true):   delegate.defaultGuiConnection = nil
+                
+            case (nil, false):  delegate.defaultNonGuiConnection = nil
+            case (_, true):     delegate.defaultGuiConnection = packet!.connectionString
+            case (_, false):    delegate.defaultNonGuiConnection = packet!.connectionString + "." + packet!.stations
+            }
         }
     }
 
