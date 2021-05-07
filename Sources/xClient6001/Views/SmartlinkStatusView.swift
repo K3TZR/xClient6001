@@ -33,10 +33,12 @@ public struct SmartlinkStatusView: View {
 struct SmartlinkStatusHeader: View {
     @EnvironmentObject var radioManager : RadioManager
 
+    @AppStorage("smartlinkIsEnabled") var smartlinkIsEnabled: Bool = false
+
     public var body: some View {
 
         Text("Smartlink Status").font(.title)
-        if radioManager.delegate.smartlinkIsEnabled {
+        if smartlinkIsEnabled {
             if !radioManager.smartlinkIsLoggedIn {
                 HStack {
                     Image(systemName: "info.circle")
@@ -59,6 +61,10 @@ struct SmartlinkStatusHeader: View {
 struct SmartlinkStatusBody: View {
     @EnvironmentObject var radioManager : RadioManager
 
+    @AppStorage("smartlinkEmail") var smartlinkEmail = ""
+    @AppStorage("smartlinkName") var smartlinkName = ""
+    @AppStorage("smartlinkCallsign") var smartlinkCallsign = ""
+
     public var body: some View {
 
         HStack (spacing: 20) {
@@ -79,9 +85,9 @@ struct SmartlinkStatusBody: View {
             .frame(width: 70, alignment: .leading)
 
             VStack (alignment: .leading, spacing: 10) {
-                Text(radioManager.smartlinkName ?? "")
-                Text(radioManager.smartlinkCallsign ?? "")
-                Text(radioManager.delegate.smartlinkEmail ?? "")
+                Text(smartlinkName)
+                Text(smartlinkCallsign)
+                Text(smartlinkEmail)
             }
             .frame(width: 200, alignment: .leading)
         }
@@ -92,10 +98,12 @@ struct SmartlinkStatusFooter: View {
     @EnvironmentObject var radioManager : RadioManager
     @Environment(\.presentationMode) var presentationMode
 
+    @AppStorage("smartlinkIsEnabled") var smartlinkIsEnabled = false
+
     public var body: some View {
 
         HStack(spacing: 60) {
-            Button(radioManager.delegate.smartlinkIsEnabled ? "Disable" : "Enable") {
+            Button(smartlinkIsEnabled ? "Disable" : "Enable") {
                 radioManager.smartlinkEnabledToggle()
                 presentationMode.wrappedValue.dismiss()
             }
