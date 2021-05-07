@@ -94,9 +94,9 @@ public enum ViewType: Hashable, Identifiable {
 }
 
 public protocol RadioManagerDelegate {
-    var clientId: String?                   {get set}
-    var defaultNonGuiConnection: String?    {get set}
-    var defaultGuiConnection: String?       {get set}
+//    var clientId: String?                   {get set}
+//    var defaultNonGuiConnection: String?    {get set}
+//    var defaultGuiConnection: String?       {get set}
     var guiIsEnabled: Bool                  {get}
     var smartlinkEmail: String?             {get set}
     var smartlinkIsEnabled: Bool            {get set}
@@ -144,6 +144,9 @@ public final class RadioManager: ObservableObject {
     // MARK: - Internal properties
     
     var auth0UrlString = ""
+    @AppStorage("defaultGuiConnection") var defaultGuiConnection: String = ""
+    @AppStorage("defaultNonGuiConnection") var defaultNonGuiConnection: String = ""
+    @AppStorage("clientId") var clientId: String = ""
 
     // ----------------------------------------------------------------------------
     // MARK: - Private properties
@@ -181,9 +184,9 @@ public final class RadioManager: ObservableObject {
         addNotifications()
 
         // if non-Gui, is there a saved Client Id?
-        if delegate.guiIsEnabled == false && delegate.clientId == nil {
+        if delegate.guiIsEnabled == false && clientId == "" {
             // NO, assign one
-            self.delegate.clientId = UUID().uuidString
+            clientId = UUID().uuidString
         }
         // if SmartLink enabled, are we logged in?
         if delegate.smartlinkIsEnabled && smartlinkIsLoggedIn == false {
@@ -205,12 +208,12 @@ public final class RadioManager: ObservableObject {
         delegate.willConnect()
 
         // connect to default?
-        if delegate.guiIsEnabled && delegate.defaultGuiConnection != nil {
-            _log("RadioManager, connecting to Gui default: \(delegate.defaultGuiConnection!)", .info,  #function, #file, #line)
-            connectRadio(using: delegate.defaultGuiConnection!)
-        } else if delegate.guiIsEnabled == false && delegate.defaultNonGuiConnection != nil {
-            _log("RadioManager, connecting to non-Gui default: \(delegate.defaultNonGuiConnection!)", .info,  #function, #file, #line)
-            connectRadio(using: delegate.defaultNonGuiConnection!)
+        if delegate.guiIsEnabled && defaultGuiConnection != "" {
+            _log("RadioManager, connecting to Gui default: \(defaultGuiConnection)", .info,  #function, #file, #line)
+            connectRadio(using: defaultGuiConnection)
+        } else if delegate.guiIsEnabled == false && defaultNonGuiConnection != "" {
+            _log("RadioManager, connecting to non-Gui default: \(defaultNonGuiConnection)", .info,  #function, #file, #line)
+            connectRadio(using: defaultNonGuiConnection)
         } else {
             showView(.radioPicker)
         }
@@ -314,9 +317,9 @@ public final class RadioManager: ObservableObject {
     public func defaultClear() {
         DispatchQueue.main.async { [self] in
             if delegate.guiIsEnabled {
-                delegate.defaultGuiConnection = nil
+                defaultGuiConnection = ""
             } else {
-                delegate.defaultNonGuiConnection = nil
+                defaultNonGuiConnection = ""
             }
         }
     }
@@ -325,11 +328,11 @@ public final class RadioManager: ObservableObject {
         DispatchQueue.main.async { [self] in
             switch (packet, delegate.guiIsEnabled) {
             
-            case (nil, true):   delegate.defaultGuiConnection = nil
+            case (nil, true):   defaultGuiConnection = ""
                 
-            case (nil, false):  delegate.defaultNonGuiConnection = nil
-            case (_, true):     delegate.defaultGuiConnection = packet!.connectionString
-            case (_, false):    delegate.defaultNonGuiConnection = packet!.connectionString + "." + packet!.stations
+            case (nil, false):  defaultNonGuiConnection = ""
+            case (_, true):     defaultGuiConnection = packet!.connectionString
+            case (_, false):    defaultNonGuiConnection = packet!.connectionString + "." + packet!.stations
             }
         }
     }
@@ -541,7 +544,7 @@ public final class RadioManager: ObservableObject {
         if _api.connect( Api.ConnectionParams(index: index,
                                               station: stationName,
                                               program: Bundle.main.infoDictionary!["CFBundleName"] as! String,
-                                              clientId: isGui ? delegate.clientId : nil,
+                                              clientId: isGui ? clientId : nil,
                                               isGui: isGui,
                                               wanHandle: radios[index].packet.wanHandle,
                                               logState: .none,
@@ -563,15 +566,15 @@ public final class RadioManager: ObservableObject {
         var newPackets = [PickerPacket]()
 
         func isGuiDefault(_ packet: DiscoveryPacket) -> Bool {
-            if let value = delegate.defaultGuiConnection {
-                return value == packet.connectionString
+            if defaultGuiConnection != "" {
+                return defaultGuiConnection == packet.connectionString
             }
             return false
         }
 
         func isNonGuiDefault(_ packet: DiscoveryPacket, _ client: GuiClient) -> Bool {
-            if let value = delegate.defaultNonGuiConnection {
-                return value == packet.connectionString + "." + client.station
+            if defaultNonGuiConnection != "" {
+                return defaultNonGuiConnection == packet.connectionString + "." + client.station
             }
             return false
         }
