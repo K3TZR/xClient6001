@@ -120,10 +120,8 @@ public final class RadioManager: ObservableObject {
     @Published public var pickerPackets = [PickerPacket]()
     @Published public var pickerSelection: Int?
     @Published public var showAlert = false
-    @Published public var smartlinkCallsign: String?
     @Published public var smartlinkImage: Image?
     @Published public var smartlinkIsLoggedIn = false
-    @Published public var smartlinkName: String?
     @Published public var smartlinkShowTestResults = false
     @Published public var smartlinkTestStatus = false
 
@@ -134,8 +132,10 @@ public final class RadioManager: ObservableObject {
     @AppStorage("defaultGuiConnection") var defaultGuiConnection: String = ""
     @AppStorage("defaultNonGuiConnection") var defaultNonGuiConnection: String = ""
     @AppStorage("guiIsEnabled") var guiIsEnabled: Bool = false
+    @AppStorage("smartlinkCallsign") var smartlinkCallsign: String = ""
     @AppStorage("smartlinkEmail") var smartlinkEmail: String = ""
     @AppStorage("smartlinkIsEnabled") var smartlinkIsEnabled: Bool = false
+    @AppStorage("smartlinkName") var smartlinkName: String = ""
 
     // ----------------------------------------------------------------------------
     // MARK: - Public properties
@@ -389,8 +389,8 @@ public final class RadioManager: ObservableObject {
         _wanServer?.disconnectFromSmartlink()
         _wanServer = nil
         DispatchQueue.main.async { [self] in
-            smartlinkName = nil
-            smartlinkCallsign = nil
+            smartlinkName = ""
+            smartlinkCallsign = ""
             smartlinkImage = nil
             smartlinkIsLoggedIn = false
         }
