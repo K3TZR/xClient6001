@@ -15,7 +15,7 @@ public typealias TokenTuple = (idToken: IdToken, refreshToken: RefreshToken)
 
 final public class AuthManager {
 
-    @AppStorage("smartlinkEmail") var smartlinkEmail: String = ""
+    @AppStorage("smartlinkEmail") var smartlinkEmail: String?
 
     // ----------------------------------------------------------------------------
     // MARK: - Private properties
@@ -120,9 +120,7 @@ final public class AuthManager {
                 // save the email & picture
                 updateClaims(from: result[0])
                 // save the Refresh Token
-                if smartlinkEmail != "" {
-                    _ = _tokenStore.set(account: smartlinkEmail, data: refreshToken)
-                }
+                _ = _tokenStore.set(account: smartlinkEmail!, data: refreshToken)
                 // save Id Token
                 _previousIdToken = result[0]
                 return result[0]
@@ -151,9 +149,7 @@ final public class AuthManager {
                 // save the email & picture
                 updateClaims(from: result[0])
                 // save the Refresh Token
-                if smartlinkEmail != "" {
-                    _ = _tokenStore.set(account: smartlinkEmail, data: refreshToken)
-                }
+                _ = _tokenStore.set(account: smartlinkEmail!, data: refreshToken)
                 // save Id Token
                 _previousIdToken = result[0]
                 return result[0]

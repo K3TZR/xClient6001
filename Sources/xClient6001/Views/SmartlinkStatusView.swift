@@ -61,9 +61,9 @@ struct SmartlinkStatusHeader: View {
 struct SmartlinkStatusBody: View {
     @EnvironmentObject var radioManager : RadioManager
 
-    @AppStorage("smartlinkEmail") var smartlinkEmail = ""
-    @AppStorage("smartlinkName") var smartlinkName = ""
-    @AppStorage("smartlinkCallsign") var smartlinkCallsign = ""
+    @AppStorage("smartlinkEmail") var smartlinkEmail: String?
+    @AppStorage("smartlinkName") var smartlinkName: String?
+    @AppStorage("smartlinkCallsign") var smartlinkCallsign: String?
 
     public var body: some View {
 
@@ -85,9 +85,9 @@ struct SmartlinkStatusBody: View {
             .frame(width: 70, alignment: .leading)
 
             VStack (alignment: .leading, spacing: 10) {
-                Text(smartlinkName)
-                Text(smartlinkCallsign)
-                Text(smartlinkEmail)
+                Text(smartlinkName ?? "")
+                Text(smartlinkCallsign ?? "")
+                Text(smartlinkEmail ?? "")
             }
             .frame(width: 200, alignment: .leading)
         }

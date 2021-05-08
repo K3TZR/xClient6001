@@ -13,13 +13,11 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "xClient6001",
-//            type: .dynamic,
             targets: ["xClient6001"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         .package(name: "XCGLogger", url: "https://github.com/DaveWoodCom/XCGLogger.git", from: "7.0.1"),
-//        .package(name: "SwiftyUserDefaults", url: "https://github.com/sunshinejr/SwiftyUserDefaults.git", from: "5.1.0"),
         .package(name: "xLib6001", url: "https://github.com/K3TZR/xLib6001.git", from: "0.7.0"),
         .package(name: "JWTDecode", url: "https://github.com/auth0/JWTDecode.swift.git", from: "2.6.0")
     ],
@@ -31,9 +29,9 @@ let package = Package(
             dependencies: [
                 "XCGLogger",
                 "xLib6001",
-//                "SwiftyUserDefaults",
                 "JWTDecode",
-            ]),
+            ]
+        ),
         .testTarget(
             name: "xClient6001Tests",
             dependencies: ["xClient6001"]),

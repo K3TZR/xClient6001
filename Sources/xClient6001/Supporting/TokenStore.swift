@@ -23,15 +23,18 @@ final class TokenStore {
     // ----------------------------------------------------------------------------
     // MARK: - Public methods
 
-    public func set(account: String, data: String) -> Bool {
-        return _wrapper.set(data, forKey: account)
+    public func set(account: String?, data: String) -> Bool {
+        guard account != nil else { return false }
+        return _wrapper.set(data, forKey: account!)
     }
 
-    public func get(account: String) -> String? {
-        return _wrapper.string(forKey: account)
+    public func get(account: String?) -> String? {
+        guard account != nil else { return nil }
+        return _wrapper.string(forKey: account!)
     }
 
-    public func delete(account: String) -> Bool{
-        return _wrapper.removeObject(forKey: account)
+    public func delete(account: String?) -> Bool{
+        guard account != nil else { return false }
+        return _wrapper.removeObject(forKey: account!)
     }
 }

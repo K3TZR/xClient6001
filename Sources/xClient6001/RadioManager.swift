@@ -128,14 +128,14 @@ public final class RadioManager: ObservableObject {
     // ----------------------------------------------------------------------------
     // MARK: - Defaults properties
 
-    @AppStorage("clientId") var clientId: String = ""
-    @AppStorage("defaultGuiConnection") var defaultGuiConnection: String = ""
-    @AppStorage("defaultNonGuiConnection") var defaultNonGuiConnection: String = ""
+    @AppStorage("clientId") var clientId: String?
+    @AppStorage("defaultGuiConnection") var defaultGuiConnection: String?
+    @AppStorage("defaultNonGuiConnection") var defaultNonGuiConnection: String?
     @AppStorage("guiIsEnabled") var guiIsEnabled: Bool = false
-    @AppStorage("smartlinkCallsign") var smartlinkCallsign: String = ""
-    @AppStorage("smartlinkEmail") var smartlinkEmail: String = ""
+    @AppStorage("smartlinkCallsign") var smartlinkCallsign: String?
+    @AppStorage("smartlinkEmail") var smartlinkEmail: String?
     @AppStorage("smartlinkIsEnabled") var smartlinkIsEnabled: Bool = false
-    @AppStorage("smartlinkName") var smartlinkName: String = ""
+    @AppStorage("smartlinkName") var smartlinkName: String?
 
     // ----------------------------------------------------------------------------
     // MARK: - Public properties
@@ -188,7 +188,7 @@ public final class RadioManager: ObservableObject {
         addNotifications()
 
         // if non-Gui, is there a saved Client Id?
-        if guiIsEnabled == false && clientId == "" {
+        if guiIsEnabled == false && clientId == nil {
             // NO, assign one
             clientId = UUID().uuidString
         }
@@ -212,12 +212,12 @@ public final class RadioManager: ObservableObject {
         delegate.willConnect()
 
         // connect to default?
-        if guiIsEnabled && defaultGuiConnection != "" {
-            _log("RadioManager, connecting to Gui default: \(defaultGuiConnection)", .info,  #function, #file, #line)
-            connectRadio(using: defaultGuiConnection)
-        } else if guiIsEnabled == false && defaultNonGuiConnection != "" {
-            _log("RadioManager, connecting to non-Gui default: \(defaultNonGuiConnection)", .info,  #function, #file, #line)
-            connectRadio(using: defaultNonGuiConnection)
+        if guiIsEnabled && defaultGuiConnection != nil {
+            _log("RadioManager, connecting to Gui default: \(defaultGuiConnection!)", .info,  #function, #file, #line)
+            connectRadio(using: defaultGuiConnection!)
+        } else if guiIsEnabled == false && defaultNonGuiConnection != nil {
+            _log("RadioManager, connecting to non-Gui default: \(defaultNonGuiConnection!)", .info,  #function, #file, #line)
+            connectRadio(using: defaultNonGuiConnection!)
         } else {
             showView(.radioPicker)
         }
@@ -389,8 +389,8 @@ public final class RadioManager: ObservableObject {
         _wanServer?.disconnectFromSmartlink()
         _wanServer = nil
         DispatchQueue.main.async { [self] in
-            smartlinkName = ""
-            smartlinkCallsign = ""
+            smartlinkName = nil
+            smartlinkCallsign = nil
             smartlinkImage = nil
             smartlinkIsLoggedIn = false
         }
