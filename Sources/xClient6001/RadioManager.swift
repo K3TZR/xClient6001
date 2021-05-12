@@ -1,8 +1,9 @@
 //
 //  RadioManager.swift
-//  xClient
+//  xClient6001
 //
 //  Created by Douglas Adams on 8/23/20.
+//  Copyright © 2020-2021 Douglas Adams. All rights reserved.
 //
 
 import Foundation
@@ -94,11 +95,19 @@ public enum ViewType: Hashable, Identifiable {
 }
 
 public protocol RadioManagerDelegate {
-    var stationName: String                 {get set}
+    var clientId: String?                   {get set}
+    var defaultGuiConnection: String?       {get set}
+    var defaultNonGuiConnection: String?    {get set}
+    var guiIsEnabled: Bool                  {get set}
+    var smartlinkCallsign: String?          {get set}
+    var smartlinkEmail: String?             {get set}
+    var smartlinkIsEnabled: Bool            {get set}
+    var smartlinkName: String?              {get set}
+    var stationName: String?                {get set}
 
-    func willConnect()
     func didConnect()
     func didFailToConnect()
+    func willConnect()
     func willDisconnect()
 }
 
@@ -124,18 +133,6 @@ public final class RadioManager: ObservableObject {
     @Published public var smartlinkIsLoggedIn = false
     @Published public var smartlinkShowTestResults = false
     @Published public var smartlinkTestStatus = false
-
-    // ----------------------------------------------------------------------------
-    // MARK: - Defaults properties
-
-    @AppStorage("clientId") var clientId: String?
-    @AppStorage("defaultGuiConnection") var defaultGuiConnection: String?
-    @AppStorage("defaultNonGuiConnection") var defaultNonGuiConnection: String?
-    @AppStorage("guiIsEnabled") var guiIsEnabled: Bool = false
-    @AppStorage("smartlinkCallsign") var smartlinkCallsign: String?
-    @AppStorage("smartlinkEmail") var smartlinkEmail: String?
-    @AppStorage("smartlinkIsEnabled") var smartlinkIsEnabled: Bool = false
-    @AppStorage("smartlinkName") var smartlinkName: String?
 
     // ----------------------------------------------------------------------------
     // MARK: - Public properties
@@ -188,12 +185,12 @@ public final class RadioManager: ObservableObject {
         addNotifications()
 
         // if non-Gui, is there a saved Client Id?
-        if guiIsEnabled == false && clientId == nil {
+        if delegate.guiIsEnabled == false && delegate.clientId == nil {
             // NO, assign one
-            clientId = UUID().uuidString
+            self.delegate.clientId = UUID().uuidString
         }
         // if SmartLink enabled, are we logged in?
-        if smartlinkIsEnabled && smartlinkIsLoggedIn == false {
+        if delegate.smartlinkIsEnabled && smartlinkIsLoggedIn == false {
             // NO, attempt to log in
             smartlinkLogin(showPicker: false)
         }
@@ -212,12 +209,12 @@ public final class RadioManager: ObservableObject {
         delegate.willConnect()
 
         // connect to default?
-        if guiIsEnabled && defaultGuiConnection != nil {
-            _log("RadioManager, connecting to Gui default: \(defaultGuiConnection!)", .info,  #function, #file, #line)
-            connectRadio(using: defaultGuiConnection!)
-        } else if guiIsEnabled == false && defaultNonGuiConnection != nil {
-            _log("RadioManager, connecting to non-Gui default: \(defaultNonGuiConnection!)", .info,  #function, #file, #line)
-            connectRadio(using: defaultNonGuiConnection!)
+        if delegate.guiIsEnabled && delegate.defaultGuiConnection != nil {
+            _log("RadioManager, connecting to Gui default: \(delegate.defaultGuiConnection!)", .info,  #function, #file, #line)
+            connectRadio(using: delegate.defaultGuiConnection!)
+        } else if delegate.guiIsEnabled == false && delegate.defaultNonGuiConnection != nil {
+            _log("RadioManager, connecting to non-Gui default: \(delegate.defaultNonGuiConnection!)", .info,  #function, #file, #line)
+            connectRadio(using: delegate.defaultNonGuiConnection!)
         } else {
             showView(.radioPicker)
         }
@@ -289,7 +286,7 @@ public final class RadioManager: ObservableObject {
             smartlinkTestStatus = false
             pickerSelection = nil
             pickerMessages = messages
-            pickerHeading = "Select a \(guiIsEnabled ? "Radio" : "Station")"
+            pickerHeading = "Select a \(delegate.guiIsEnabled ? "Radio" : "Station")"
             DispatchQueue.main.async { [self] in activeView = type }
 
         case .smartlinkAuthentication:
@@ -306,13 +303,13 @@ public final class RadioManager: ObservableObject {
         let packets = getPickerPackets()
         var buttons = [AlertButton]()
         for packet in packets {
-            let listLine = packet.nickname + " - " + packet.type.rawValue + (guiIsEnabled ? "" : " - " + packet.stations)
+            let listLine = packet.nickname + " - " + packet.type.rawValue + (delegate.guiIsEnabled ? "" : " - " + packet.stations)
             buttons.append(AlertButton(listLine, { self.defaultSet(packet) }, color: packet.isDefault ? .red : nil))
         }
         buttons.append(AlertButton( "Clear", { self.defaultClear() }))
         buttons.append(AlertButton( "Cancel", {}))
-        currentAlert = AlertParams(title: "Select a \(guiIsEnabled ? "Radio" : "Station")",
-                                   message: pickerPackets.count == 0 ? "No \(guiIsEnabled ? "Radios" : "Stations") found" : "current default shown in red (if any)",
+        currentAlert = AlertParams(title: "Select a \(delegate.guiIsEnabled ? "Radio" : "Station")",
+                                   message: pickerPackets.count == 0 ? "No \(delegate.guiIsEnabled ? "Radios" : "Stations") found" : "current default shown in red (if any)",
                                    symbolName: pickerPackets.count == 0 ? "exclamationmark.triangle" : "info.circle",
                                    buttons: buttons)
         showView(.genericAlert)
@@ -320,23 +317,23 @@ public final class RadioManager: ObservableObject {
     
     public func defaultClear() {
         DispatchQueue.main.async { [self] in
-            if guiIsEnabled {
-                defaultGuiConnection = ""
+            if delegate.guiIsEnabled {
+                delegate.defaultGuiConnection = ""
             } else {
-                defaultNonGuiConnection = ""
+                delegate.defaultNonGuiConnection = ""
             }
         }
     }
        
     public func defaultSet(_ packet: PickerPacket?) {
         DispatchQueue.main.async { [self] in
-            switch (packet, guiIsEnabled) {
+            switch (packet, delegate.guiIsEnabled) {
             
-            case (nil, true):   defaultGuiConnection = ""
+            case (nil, true):   delegate.defaultGuiConnection = ""
                 
-            case (nil, false):  defaultNonGuiConnection = ""
-            case (_, true):     defaultGuiConnection = packet!.connectionString
-            case (_, false):    defaultNonGuiConnection = packet!.connectionString + "." + packet!.stations
+            case (nil, false):  delegate.defaultNonGuiConnection = ""
+            case (_, true):     delegate.defaultGuiConnection = packet!.connectionString
+            case (_, false):    delegate.defaultNonGuiConnection = packet!.connectionString + "." + packet!.stations
             }
         }
     }
@@ -345,12 +342,12 @@ public final class RadioManager: ObservableObject {
     // MARK: - Public methods (Smartlink)
 
     public func smartlinkEnabledToggle() {
-        if smartlinkIsEnabled && smartlinkIsLoggedIn { smartlinkLogout() }
-        smartlinkIsEnabled.toggle()
+        if delegate.smartlinkIsEnabled && smartlinkIsLoggedIn { smartlinkLogout() }
+        delegate.smartlinkIsEnabled.toggle()
     }
 
     public func smartlinkForceLogin() {
-        smartlinkEmail = ""
+        delegate.smartlinkEmail = ""
         _authManager.forceNewLogin()
         smartlinkLogout()
     }
@@ -378,7 +375,7 @@ public final class RadioManager: ObservableObject {
                                    platform: kPlatform,
                                    idToken: idToken) {
                 smartlinkIsLoggedIn = true
-                smartlinkEmail = email
+                delegate.smartlinkEmail = email
                 showView(.radioPicker)
             }
         }
@@ -389,8 +386,8 @@ public final class RadioManager: ObservableObject {
         _wanServer?.disconnectFromSmartlink()
         _wanServer = nil
         DispatchQueue.main.async { [self] in
-            smartlinkName = nil
-            smartlinkCallsign = nil
+            delegate.smartlinkName = nil
+            delegate.smartlinkCallsign = nil
             smartlinkImage = nil
             smartlinkIsLoggedIn = false
         }
@@ -415,13 +412,13 @@ public final class RadioManager: ObservableObject {
         if let index = index {
             guard activeRadio == nil else { disconnect() ; return }
             
-            let packetIndex = guiIsEnabled ? index : pickerPackets[index].packetIndex
+            let packetIndex = delegate.guiIsEnabled ? index : pickerPackets[index].packetIndex
             
             if radios.count - 1 >= packetIndex {
                 if let packet = radios[packetIndex].packet {
 
                     // if Non-Gui, schedule automatic binding
-                    _autoBind = guiIsEnabled ? nil : index
+                    _autoBind = delegate.guiIsEnabled ? nil : index
 
                     if packet.isWan {
                         _wanServer?.connectTo(packet.serialNumber, holePunchPort: packet.negotiatedHolePunchPort)
@@ -452,8 +449,8 @@ public final class RadioManager: ObservableObject {
     /// - Parameter packet:     the packet describing the Radio to be opened
     ///
     private func openRadio(at index: Int) {
-        guard guiIsEnabled else {
-            connectToRadio(at: index, isGui: guiIsEnabled, station: delegate.stationName)
+        guard delegate.guiIsEnabled else {
+            connectToRadio(at: index, isGui: delegate.guiIsEnabled, station: delegate.stationName)
             return
         }
         
@@ -464,10 +461,10 @@ public final class RadioManager: ObservableObject {
             
         case (kAvailable, 1):           // connected to another client
             let firstButtonAction = { [self] in
-                connectToRadio(at: index, isGui: guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[0].handle), station: delegate.stationName)
+                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[0].handle), station: delegate.stationName)
             }
             let secondButtonAction = { [self] in
-                connectToRadio(at: index, isGui: guiIsEnabled, station: delegate.stationName)
+                connectToRadio(at: index, isGui: delegate.guiIsEnabled, station: delegate.stationName)
             }
             currentAlert = AlertParams(title: "Radio is connected to Station",
                                        message: radios[index].guiClients[0].station,
@@ -481,9 +478,9 @@ public final class RadioManager: ObservableObject {
 
         case (kInUse, 2):               // connected to 2 clients
             let firstButtonAction = { [self] in
-                connectToRadio(at: index, isGui: guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[0].handle), station: delegate.stationName)      }
+                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[0].handle), station: delegate.stationName)      }
             let secondButtonAction = { [self] in
-                connectToRadio(at: index, isGui: guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[1].handle), station: delegate.stationName)      }
+                connectToRadio(at: index, isGui: delegate.guiIsEnabled, pendingDisconnect: .some(handle: radios[index].guiClients[1].handle), station: delegate.stationName)      }
             currentAlert = AlertParams(title: "Radio is connected to multiple Stations",
                                       message: "",
                                       symbolName: "exclamationmark.triangle",
@@ -520,7 +517,7 @@ public final class RadioManager: ObservableObject {
     private func findMatchingConnection(_ conn: connectionTuple) -> Int? {
         for (i, packet) in pickerPackets.enumerated() {
             if packet.serialNumber == conn.serialNumber && packet.type.rawValue == conn.type {
-                if guiIsEnabled {
+                if delegate.guiIsEnabled {
                     return i
                 } else if packet.stations == conn.station {
                     return i
@@ -540,15 +537,15 @@ public final class RadioManager: ObservableObject {
     /// - Parameters:
     ///   - packet:             the packet describing the Radio
     ///   - pendingDisconnect:  a struct describing a pending disconnect (if any)
-    private func connectToRadio(at index: Int, isGui: Bool = true, pendingDisconnect: Api.PendingDisconnect = .none, station: String = "") {
+    private func connectToRadio(at index: Int, isGui: Bool = true, pendingDisconnect: Api.PendingDisconnect = .none, station: String?) {
         // station will be "Mac" if not passed
-        let stationName = (station == "" ? kStation : station)
+        let stationName = (station == nil ? kStation : station!)
         
         // attempt a connection
         if _api.connect( Api.ConnectionParams(index: index,
                                               station: stationName,
                                               program: Bundle.main.infoDictionary!["CFBundleName"] as! String,
-                                              clientId: isGui ? clientId : nil,
+                                              clientId: isGui ? delegate.clientId : nil,
                                               isGui: isGui,
                                               wanHandle: radios[index].packet.wanHandle,
                                               logState: .none,
@@ -570,20 +567,20 @@ public final class RadioManager: ObservableObject {
         var newPackets = [PickerPacket]()
 
         func isGuiDefault(_ packet: DiscoveryPacket) -> Bool {
-            if defaultGuiConnection != "" {
-                return defaultGuiConnection == packet.connectionString
+            if delegate.defaultGuiConnection != "" {
+                return delegate.defaultGuiConnection == packet.connectionString
             }
             return false
         }
 
         func isNonGuiDefault(_ packet: DiscoveryPacket, _ client: GuiClient) -> Bool {
-            if defaultNonGuiConnection != "" {
-                return defaultNonGuiConnection == packet.connectionString + "." + client.station
+            if delegate.defaultNonGuiConnection != "" {
+                return delegate.defaultNonGuiConnection == packet.connectionString + "." + client.station
             }
             return false
         }
         var p = 0
-        if guiIsEnabled {
+        if delegate.guiIsEnabled {
             // GUI connection
             radios.forEach{ radio in
                 newPackets.append( PickerPacket(id: p,
@@ -706,8 +703,8 @@ extension RadioManager: WanServerDelegate {
 
     public func wanSettings(name: String, call: String) {
         DispatchQueue.main.async{ [self] in
-            smartlinkName = name
-            smartlinkCallsign = call
+            delegate.smartlinkName = name
+            delegate.smartlinkCallsign = call
         }
     }
 

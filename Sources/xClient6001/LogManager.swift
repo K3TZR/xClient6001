@@ -1,9 +1,9 @@
 //
 //  LogManager.swift
-//  xClient
+//  xClient6001
 //
 //  Created by Douglas Adams on 3/4/20.
-//  Copyright © 2020 Douglas Adams. All rights reserved.
+//  Copyright © 2020-2021 Douglas Adams. All rights reserved.
 //
 
 import Foundation

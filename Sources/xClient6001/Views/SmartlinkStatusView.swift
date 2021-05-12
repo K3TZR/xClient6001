@@ -1,8 +1,9 @@
 //
 //  SmartLinkStatusView.swift
-//  xClient
+//  xClient6001
 //
 //  Created by Douglas Adams on 8/13/20.
+//  Copyright © 2020-2021 Douglas Adams. All rights reserved.
 //
 
 import SwiftUI
@@ -33,12 +34,10 @@ public struct SmartlinkStatusView: View {
 struct SmartlinkStatusHeader: View {
     @EnvironmentObject var radioManager : RadioManager
 
-    @AppStorage("smartlinkIsEnabled") var smartlinkIsEnabled: Bool = false
-
     public var body: some View {
 
         Text("Smartlink Status").font(.title)
-        if smartlinkIsEnabled {
+        if radioManager.delegate.smartlinkIsEnabled {
             if !radioManager.smartlinkIsLoggedIn {
                 HStack {
                     Image(systemName: "info.circle")
@@ -61,10 +60,6 @@ struct SmartlinkStatusHeader: View {
 struct SmartlinkStatusBody: View {
     @EnvironmentObject var radioManager : RadioManager
 
-    @AppStorage("smartlinkEmail") var smartlinkEmail: String?
-    @AppStorage("smartlinkName") var smartlinkName: String?
-    @AppStorage("smartlinkCallsign") var smartlinkCallsign: String?
-
     public var body: some View {
 
         HStack (spacing: 20) {
@@ -85,9 +80,9 @@ struct SmartlinkStatusBody: View {
             .frame(width: 70, alignment: .leading)
 
             VStack (alignment: .leading, spacing: 10) {
-                Text(smartlinkName ?? "")
-                Text(smartlinkCallsign ?? "")
-                Text(smartlinkEmail ?? "")
+                Text(radioManager.delegate.smartlinkName ?? "")
+                Text(radioManager.delegate.smartlinkCallsign ?? "")
+                Text(radioManager.delegate.smartlinkEmail ?? "")
             }
             .frame(width: 200, alignment: .leading)
         }

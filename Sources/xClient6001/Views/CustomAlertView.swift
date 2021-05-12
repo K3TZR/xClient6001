@@ -1,8 +1,9 @@
 //
 //  CustomAlertView.swift
-//  xClient
+//  xClient6001
 //
 //  Created by Douglas Adams on 12/31/20.
+//  Copyright © 2020-2021 Douglas Adams. All rights reserved.
 //
 
 #if os(iOS)

@@ -1,8 +1,9 @@
 //
 //  RadioPickerView.swift
-//  xClient
+//  xClient6001
 //
 //  Created by Douglas Adams on 8/15/20.
+//  Copyright © 2020-2021 Douglas Adams. All rights reserved.
 //
 
 import SwiftUI
@@ -82,14 +83,12 @@ struct ListHeader: View {
 struct EmptyList: View {
     @EnvironmentObject var radioManager : RadioManager
 
-    @AppStorage("guiIsEnabled") var guiIsEnabled = false
-
     var body: some View {
         VStack {
             Spacer()
             HStack {
                 Spacer()
-                Text("---------- No \(guiIsEnabled ? "Radios" : "Stations") found ----------")
+                Text("---------- No \(radioManager.delegate.guiIsEnabled ? "Radios" : "Stations") found ----------")
                     .foregroundColor(.red)
                 Spacer()
             }
@@ -159,13 +158,11 @@ struct RadioPickerFooterView: View {
 struct TestButtonView: View {
     @EnvironmentObject var radioManager :RadioManager
 
-    @AppStorage("smartlinkIsEnabled") var smartlinkIsEnabled = false
-    
     var body: some View {
 
         HStack {
             // only enable Test if a SmartLink connection is selected
-            let testDisabled = !smartlinkIsEnabled || radioManager.pickerSelection == nil || radioManager.pickerPackets[radioManager.pickerSelection!].type != .wan
+            let testDisabled = !radioManager.delegate.smartlinkIsEnabled || radioManager.pickerSelection == nil || radioManager.pickerPackets[radioManager.pickerSelection!].type != .wan
 
             Button("Test") {
                     radioManager.smartlinkTest()

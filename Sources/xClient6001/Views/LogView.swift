@@ -1,8 +1,9 @@
 //
 //  LogView.swift
-//  xClient
+//  xClient6001
 //
 //  Created by Douglas Adams on 10/10/20.
+//  Copyright © 2020-2021 Douglas Adams. All rights reserved.
 //
 
 import SwiftUI

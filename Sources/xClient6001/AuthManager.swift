@@ -1,9 +1,9 @@
 //
-//  Authentication.swift
-//  Auth0Sample
+//  AuthManager.swift
+//  xClient6001
 //
 //  Created by Douglas Adams on 3/16/21.
-//  Copyright © 2021 Auth0. All rights reserved.
+//  Copyright © 2020-2021 Douglas Adams. All rights reserved.
 //
 
 import JWTDecode
@@ -14,9 +14,6 @@ public typealias RefreshToken = String?
 public typealias TokenTuple = (idToken: IdToken, refreshToken: RefreshToken)
 
 final public class AuthManager {
-
-    @AppStorage("smartlinkEmail") var smartlinkEmail: String?
-
     // ----------------------------------------------------------------------------
     // MARK: - Private properties
 
@@ -68,8 +65,8 @@ final public class AuthManager {
 
     public func forceNewLogin() {
         _previousIdToken = ""
-        if smartlinkEmail != ""{
-            _ = _tokenStore.delete(account: smartlinkEmail)
+        if _radioManager.delegate.smartlinkEmail != ""{
+            _ = _tokenStore.delete(account: _radioManager.delegate.smartlinkEmail)
         }
     }
     
@@ -84,7 +81,7 @@ final public class AuthManager {
             // YES, use the saved token
             return previousToken
 
-        } else if smartlinkEmail != "", let refreshToken = _tokenStore.get(account: smartlinkEmail) {
+        } else if _radioManager.delegate.smartlinkEmail != "", let refreshToken = _tokenStore.get(account: _radioManager.delegate.smartlinkEmail) {
             // can we get an ID Token using the Refresh Token?
             if let idToken = requestIdToken(from: refreshToken), isValid(idToken) {
                 // YES, save it
@@ -93,7 +90,7 @@ final public class AuthManager {
 
             } else {
                 // NO, the Keychain entry is no longer valid, delete it
-                _ = _tokenStore.delete(account: smartlinkEmail)
+                _ = _tokenStore.delete(account: _radioManager.delegate.smartlinkEmail)
             }
         }
         return nil
@@ -120,7 +117,7 @@ final public class AuthManager {
                 // save the email & picture
                 updateClaims(from: result[0])
                 // save the Refresh Token
-                _ = _tokenStore.set(account: smartlinkEmail!, data: refreshToken)
+                _ = _tokenStore.set(account: _radioManager.delegate.smartlinkEmail!, data: refreshToken)
                 // save Id Token
                 _previousIdToken = result[0]
                 return result[0]
@@ -149,7 +146,7 @@ final public class AuthManager {
                 // save the email & picture
                 updateClaims(from: result[0])
                 // save the Refresh Token
-                _ = _tokenStore.set(account: smartlinkEmail!, data: refreshToken)
+                _ = _tokenStore.set(account: _radioManager.delegate.smartlinkEmail!, data: refreshToken)
                 // save Id Token
                 _previousIdToken = result[0]
                 return result[0]
@@ -250,7 +247,7 @@ final public class AuthManager {
         if let idToken = idToken, let jwt = try? decode(jwt: idToken) {
             DispatchQueue.main.async { [self] in 
                 _radioManager.smartlinkImage = getImage(jwt.claim(name: kClaimPicture).string)
-                smartlinkEmail = jwt.claim(name: kClaimEmail).string ?? ""
+                _radioManager.delegate.smartlinkEmail = jwt.claim(name: kClaimEmail).string ?? ""
             }
         }
     }

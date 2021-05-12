@@ -1,8 +1,9 @@
 //
 //  NewSmartlinkAuthorizationView.swift
-//  xClient
+//  xClient6001
 //
 //  Created by Douglas Adams on 3/16/21.
+//  Copyright © 2020-2021 Douglas Adams. All rights reserved.
 //
 
 import SwiftUI
