@@ -125,6 +125,19 @@ struct PopulatedList: View {
                 Text(packet.status.rawValue).frame(width: 130, alignment: .leading)
                 Text(packet.stations).frame(width: 130, alignment: .leading)
             }
+            .contextMenu {
+                Button {
+                    print("Set packet \(packet.id) as Default")
+                } label: {
+                    Label("Set as Default")
+                }
+
+                Button {
+                    print("Clear default")
+                } label: {
+                    Label("Clear default")
+                }
+            }
             .foregroundColor( packet.isDefault ? .red : stdColor )
         }
         .frame(alignment: .leading)
