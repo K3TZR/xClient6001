@@ -21,8 +21,9 @@ public struct PickerPacket : Identifiable, Equatable, Comparable {
     public var stations   = ""
     var serialNumber      = ""
     var isDefault         = false
-    var connectionString: String { "\(type == .wan ? "wan" : "local").\(serialNumber)" }
-    
+//    var connectionString: String { "\(type == .wan ? "wan" : "local").\(serialNumber)" }
+    var connectionString = ""
+
     public static func ==(lhs: PickerPacket, rhs: PickerPacket) -> Bool {
         guard lhs.serialNumber != "" else { return false }
         return lhs.connectionString == rhs.connectionString
@@ -300,17 +301,12 @@ public final class RadioManager: ObservableObject {
     /// Show the Default Picker sheet
     ///
     public func defaultChoose() {
-        let packets = getPickerPackets()
         var buttons = [AlertButton]()
-        for packet in packets {
-            let listLine = packet.nickname + " - " + packet.type.rawValue + (delegate.guiIsEnabled ? "" : " - " + packet.stations)
-            buttons.append(AlertButton(listLine, { self.defaultSet(packet) }, color: packet.isDefault ? .red : nil))
-        }
-        buttons.append(AlertButton( "Clear", { self.defaultClear() }))
+        buttons.append(AlertButton( "Clear the current Default", { self.defaultClear() }))
         buttons.append(AlertButton( "Cancel", {}))
-        currentAlert = AlertParams(title: "Select a \(delegate.guiIsEnabled ? "Radio" : "Station")",
-                                   message: pickerPackets.count == 0 ? "No \(delegate.guiIsEnabled ? "Radios" : "Stations") found" : "current default shown in red (if any)",
-                                   symbolName: pickerPackets.count == 0 ? "exclamationmark.triangle" : "info.circle",
+        currentAlert = AlertParams(title: "Choose one",
+                                   message: "",
+                                   symbolName: "info.circle",
                                    buttons: buttons)
         showView(.genericAlert)
     }
@@ -318,22 +314,19 @@ public final class RadioManager: ObservableObject {
     public func defaultClear() {
         DispatchQueue.main.async { [self] in
             if delegate.guiIsEnabled {
-                delegate.defaultGuiConnection = ""
+                delegate.defaultGuiConnection = nil
             } else {
-                delegate.defaultNonGuiConnection = ""
+                delegate.defaultNonGuiConnection = nil
             }
         }
     }
        
-    public func defaultSet(_ packet: PickerPacket?) {
+    public func defaultSet(_ pickerSelection: Int) {
         DispatchQueue.main.async { [self] in
-            switch (packet, delegate.guiIsEnabled) {
-            
-            case (nil, true):   delegate.defaultGuiConnection = ""
-                
-            case (nil, false):  delegate.defaultNonGuiConnection = ""
-            case (_, true):     delegate.defaultGuiConnection = packet!.connectionString
-            case (_, false):    delegate.defaultNonGuiConnection = packet!.connectionString + "." + packet!.stations
+            if delegate.guiIsEnabled {
+                delegate.defaultGuiConnection = pickerPackets[pickerSelection].connectionString
+            } else {
+                delegate.defaultNonGuiConnection = pickerPackets[pickerSelection].connectionString
             }
         }
     }
@@ -566,23 +559,11 @@ public final class RadioManager: ObservableObject {
     private func getPickerPackets() -> [PickerPacket] {
         var newPackets = [PickerPacket]()
 
-        func isGuiDefault(_ packet: DiscoveryPacket) -> Bool {
-            if delegate.defaultGuiConnection != "" {
-                return delegate.defaultGuiConnection == packet.connectionString
-            }
-            return false
-        }
-
-        func isNonGuiDefault(_ packet: DiscoveryPacket, _ client: GuiClient) -> Bool {
-            if delegate.defaultNonGuiConnection != "" {
-                return delegate.defaultNonGuiConnection == packet.connectionString + "." + client.station
-            }
-            return false
-        }
         var p = 0
         if delegate.guiIsEnabled {
             // GUI connection
             radios.forEach{ radio in
+                let connectionString = radio.packet.isWan ? "wan." : "local." + radio.packet.serialNumber
                 newPackets.append( PickerPacket(id: p,
                                                 packetIndex: p,
                                                 type: radio.packet.isWan ? .wan : .local,
@@ -590,7 +571,8 @@ public final class RadioManager: ObservableObject {
                                                 status: ConnectionStatus(rawValue: radio.packet.status.lowercased()) ?? .inUse,
                                                 stations: radio.packet.guiClientStations,
                                                 serialNumber: radio.packet.serialNumber,
-                                                isDefault: isGuiDefault(radio.packet)))
+                                                isDefault: delegate.defaultGuiConnection == connectionString,
+                                                connectionString: connectionString))
                 p += 1
             }
 
@@ -599,6 +581,7 @@ public final class RadioManager: ObservableObject {
             var i = 0
             radios.forEach{ radio in
                 radio.guiClients.forEach { guiClient in
+                    let connectionString = (radio.packet.isWan ? "wan." : "local.") + radio.packet.serialNumber + "." + guiClient.station
                     newPackets.append( PickerPacket(id: i,
                                                     packetIndex: p,
                                                     type: radio.packet.isWan ? .wan : .local,
@@ -606,7 +589,8 @@ public final class RadioManager: ObservableObject {
                                                     status: ConnectionStatus(rawValue: radio.packet.status.lowercased()) ?? .inUse,
                                                     stations: guiClient.station,
                                                     serialNumber: radio.packet.serialNumber,
-                                                    isDefault: isNonGuiDefault(radio.packet, guiClient)))
+                                                    isDefault: delegate.defaultNonGuiConnection == connectionString,
+                                                    connectionString: connectionString))
                     i += 1
                 }
                 p += 1

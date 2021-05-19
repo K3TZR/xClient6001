@@ -100,6 +100,14 @@ struct EmptyList: View {
 struct PopulatedList: View {
     @EnvironmentObject var radioManager : RadioManager
 
+    func isDefault(_ connectionString: String) -> Bool {
+        if radioManager.delegate.guiIsEnabled {
+            return connectionString == radioManager.delegate.defaultGuiConnection
+        } else {
+            return connectionString == radioManager.delegate.defaultNonGuiConnection
+        }
+    }
+
     var body: some View {
         #if os(macOS)
         let stdColor = Color(.controlTextColor)
@@ -111,7 +119,7 @@ struct PopulatedList: View {
                 Text(packet.status.rawValue).frame(width: 130, alignment: .leading)
                 Text(packet.stations).frame(width: 130, alignment: .leading)
             }
-            .foregroundColor( packet.isDefault ? .red : stdColor )
+            .foregroundColor( isDefault(packet.connectionString) ? .red : stdColor )
         }
         .frame(alignment: .leading)
 
@@ -143,12 +151,19 @@ struct RadioPickerFooterView: View {
 
     var body: some View {
         HStack(spacing: 40){
-            TestButtonView()
             Button("Cancel") {
                 radioManager.pickerSelection = nil
                 presentationMode.wrappedValue.dismiss()
             }
             .keyboardShortcut(.cancelAction)
+
+            TestButtonView()
+
+            Button("Set as Default") {
+                radioManager.defaultSet( radioManager.pickerSelection! )
+                presentationMode.wrappedValue.dismiss()
+            }
+                .disabled(radioManager.pickerSelection == nil)
 
             Button("Connect") {
                 presentationMode.wrappedValue.dismiss()
