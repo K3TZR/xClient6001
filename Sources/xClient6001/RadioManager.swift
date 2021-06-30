@@ -568,7 +568,7 @@ public final class RadioManager: ObservableObject {
                                                 type: radio.isWan ? .wan : .local,
                                                 nickname: radio.nickname,
                                                 status: ConnectionStatus(rawValue: radio.status.lowercased()) ?? .inUse,
-                                                stations: radio.guiClientStations,
+                                                stations: String(radio.guiClients.reduce("", {$0 + $1.station + " " }).dropLast()),
                                                 serialNumber: radio.serialNumber,
                                                 isDefault: delegate.defaultGuiConnection == connectionString,
                                                 connectionString: connectionString))
