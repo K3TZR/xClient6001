@@ -408,16 +408,15 @@ public final class RadioManager: ObservableObject {
             let packetIndex = delegate.guiIsEnabled ? index : pickerPackets[index].packetIndex
             
             if radios.count - 1 >= packetIndex {
-                if let packet = radios[packetIndex].packet {
+                let radio = radios[packetIndex]
 
-                    // if Non-Gui, schedule automatic binding
-                    _autoBind = delegate.guiIsEnabled ? nil : index
+                // if Non-Gui, schedule automatic binding
+                _autoBind = delegate.guiIsEnabled ? nil : index
 
-                    if packet.isWan {
-                        _wanServer?.connectTo(packet.serialNumber, holePunchPort: packet.negotiatedHolePunchPort)
-                    } else {
-                        openRadio(at: packetIndex)
-                    }
+                if radio.isWan {
+                    _wanServer?.connectTo(radio.serialNumber, holePunchPort: radio.negotiatedHolePunchPort)
+                } else {
+                    openRadio(at: packetIndex)
                 }
             }
         }
@@ -447,7 +446,7 @@ public final class RadioManager: ObservableObject {
             return
         }
         
-        switch (radios[index].packet.status.lowercased(), radios[index].guiClients.count) {
+        switch (radios[index].status.lowercased(), radios[index].guiClients.count) {
 
         case (kAvailable, 0):           // not connected to another client
             connectToRadio(at: index, station: delegate.stationName)
@@ -540,7 +539,7 @@ public final class RadioManager: ObservableObject {
                                               program: Bundle.main.infoDictionary!["CFBundleName"] as! String,
                                               clientId: isGui ? delegate.clientId : nil,
                                               isGui: isGui,
-                                              wanHandle: radios[index].packet.wanHandle,
+                                              wanHandle: radios[index].wanHandle,
                                               logState: .none,
                                               pendingDisconnect: pendingDisconnect)) {
 
@@ -563,14 +562,14 @@ public final class RadioManager: ObservableObject {
         if delegate.guiIsEnabled {
             // GUI connection
             radios.forEach{ radio in
-                let connectionString = radio.packet.isWan ? "wan." : "local." + radio.packet.serialNumber
+                let connectionString = radio.isWan ? "wan." : "local." + radio.serialNumber
                 newPackets.append( PickerPacket(id: p,
                                                 packetIndex: p,
-                                                type: radio.packet.isWan ? .wan : .local,
-                                                nickname: radio.packet.nickname,
-                                                status: ConnectionStatus(rawValue: radio.packet.status.lowercased()) ?? .inUse,
-                                                stations: radio.packet.guiClientStations,
-                                                serialNumber: radio.packet.serialNumber,
+                                                type: radio.isWan ? .wan : .local,
+                                                nickname: radio.nickname,
+                                                status: ConnectionStatus(rawValue: radio.status.lowercased()) ?? .inUse,
+                                                stations: radio.guiClientStations,
+                                                serialNumber: radio.serialNumber,
                                                 isDefault: delegate.defaultGuiConnection == connectionString,
                                                 connectionString: connectionString))
                 p += 1
@@ -581,14 +580,14 @@ public final class RadioManager: ObservableObject {
             var i = 0
             radios.forEach{ radio in
                 radio.guiClients.forEach { guiClient in
-                    let connectionString = (radio.packet.isWan ? "wan." : "local.") + radio.packet.serialNumber + "." + guiClient.station
+                    let connectionString = (radio.isWan ? "wan." : "local.") + radio.serialNumber + "." + guiClient.station
                     newPackets.append( PickerPacket(id: i,
                                                     packetIndex: p,
-                                                    type: radio.packet.isWan ? .wan : .local,
-                                                    nickname: radio.packet.nickname,
-                                                    status: ConnectionStatus(rawValue: radio.packet.status.lowercased()) ?? .inUse,
+                                                    type: radio.isWan ? .wan : .local,
+                                                    nickname: radio.nickname,
+                                                    status: ConnectionStatus(rawValue: radio.status.lowercased()) ?? .inUse,
                                                     stations: guiClient.station,
-                                                    serialNumber: radio.packet.serialNumber,
+                                                    serialNumber: radio.serialNumber,
                                                     isDefault: delegate.defaultNonGuiConnection == connectionString,
                                                     connectionString: connectionString))
                     i += 1
@@ -693,8 +692,8 @@ extension RadioManager: WanServerDelegate {
     }
 
     public func wanConnectReady(handle: String, serial: String) {
-        for (i, radio) in Discovery.sharedInstance.radios.enumerated() where radio.packet.serialNumber == serial && radio.packet.isWan {
-            Discovery.sharedInstance.radios[i].packet.wanHandle = handle
+        for (i, radio) in Discovery.sharedInstance.radios.enumerated() where radio.serialNumber == serial && radio.isWan {
+            Discovery.sharedInstance.radios[i].wanHandle = handle
             openRadio(at: i)
         }
     }
