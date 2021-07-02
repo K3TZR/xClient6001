@@ -414,7 +414,7 @@ public final class RadioManager: ObservableObject {
                 _autoBind = delegate.guiIsEnabled ? nil : index
 
                 if radio.isWan {
-                    _wanServer?.connectTo(radio.serialNumber, holePunchPort: radio.negotiatedHolePunchPort)
+                    _wanServer?.connectTo(radio.serialNumber, holePunchPort: radio.negotiatedHolePunchPort!)
                 } else {
                     openRadio(at: packetIndex)
                 }
@@ -562,16 +562,15 @@ public final class RadioManager: ObservableObject {
         if delegate.guiIsEnabled {
             // GUI connection
             radios.forEach{ radio in
-                let connectionString = radio.isWan ? "wan." : "local." + radio.serialNumber
                 newPackets.append( PickerPacket(id: p,
                                                 packetIndex: p,
                                                 type: radio.isWan ? .wan : .local,
                                                 nickname: radio.nickname,
                                                 status: ConnectionStatus(rawValue: radio.status.lowercased()) ?? .inUse,
-                                                stations: String(radio.guiClients.reduce("", {$0 + $1.station + " " }).dropLast()),
+                                                stations: String(radio.guiClients.reduce("", {$0 + $1.station + ", " }).dropLast(2)),
                                                 serialNumber: radio.serialNumber,
-                                                isDefault: delegate.defaultGuiConnection == connectionString,
-                                                connectionString: connectionString))
+                                                isDefault: delegate.defaultGuiConnection == radio.connectionString,
+                                                connectionString: radio.connectionString))
                 p += 1
             }
 
@@ -580,7 +579,6 @@ public final class RadioManager: ObservableObject {
             var i = 0
             radios.forEach{ radio in
                 radio.guiClients.forEach { guiClient in
-                    let connectionString = (radio.isWan ? "wan." : "local.") + radio.serialNumber + "." + guiClient.station
                     newPackets.append( PickerPacket(id: i,
                                                     packetIndex: p,
                                                     type: radio.isWan ? .wan : .local,
@@ -588,8 +586,8 @@ public final class RadioManager: ObservableObject {
                                                     status: ConnectionStatus(rawValue: radio.status.lowercased()) ?? .inUse,
                                                     stations: guiClient.station,
                                                     serialNumber: radio.serialNumber,
-                                                    isDefault: delegate.defaultNonGuiConnection == connectionString,
-                                                    connectionString: connectionString))
+                                                    isDefault: delegate.defaultNonGuiConnection == radio.connectionString + "." + guiClient.station,
+                                                    connectionString: radio.connectionString + "." + guiClient.station))
                     i += 1
                 }
                 p += 1
