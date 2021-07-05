@@ -29,7 +29,7 @@
         }
       },
       {
-        "package": "JWTDecode",
+        "package": "JWTDecode.swift",
         "repositoryURL": "https://github.com/auth0/JWTDecode.swift.git",
         "state": {
           "branch": null,
@@ -69,8 +69,8 @@
         "repositoryURL": "https://github.com/K3TZR/xLib6001.git",
         "state": {
           "branch": null,
-          "revision": "7252bce2a9f6e6ed5bad3d626e2dadf7a188fa77",
-          "version": "0.8.11"
+          "revision": "3269a369a8f53603c1ec4dbc7cc9d5cc363e67fd",
+          "version": "0.8.12"
         }
       }
     ]
