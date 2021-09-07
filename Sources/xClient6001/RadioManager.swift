@@ -200,6 +200,14 @@ public final class RadioManager: ObservableObject {
     // ----------------------------------------------------------------------------
     // MARK: - Public methods
     
+    public func startStopConnection() {
+        if isConnected {
+            disconnect()
+        } else {
+            connect()
+        }
+    }
+    
     /// Initiate a connection to a Radio
     ///
     public func connect() {
@@ -343,6 +351,15 @@ public final class RadioManager: ObservableObject {
         delegate.smartlinkEmail = ""
         _authManager.forceNewLogin()
         smartlinkLogout()
+    }
+    
+    
+    public func smartlinkLoginLogout() {
+        if smartlinkIsLoggedIn {
+            smartlinkLogout()
+        } else {
+            smartlinkLogin()
+        }
     }
     
     public func smartlinkLogin(showPicker: Bool = true) {

@@ -29,7 +29,7 @@
         }
       },
       {
-        "package": "JWTDecode.swift",
+        "package": "JWTDecode",
         "repositoryURL": "https://github.com/auth0/JWTDecode.swift.git",
         "state": {
           "branch": null,
